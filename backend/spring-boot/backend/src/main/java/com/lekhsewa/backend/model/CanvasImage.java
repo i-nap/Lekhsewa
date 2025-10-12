@@ -18,7 +18,7 @@ public class CanvasImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "file_name", nullable = false, unique = true)
     private String fileName;

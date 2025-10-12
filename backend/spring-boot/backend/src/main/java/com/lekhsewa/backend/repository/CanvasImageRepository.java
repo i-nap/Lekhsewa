@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface CanvasImageRepository extends JpaRepository<CanvasImage, Long> {
     Optional<CanvasImage> findByFileName(String fileName);
+    Optional<CanvasImage> findById(long id);
 }
