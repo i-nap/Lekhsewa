@@ -1,0 +1,1 @@
+alter table canvas_image add column if not exists content_type text not null default 'image/png';
