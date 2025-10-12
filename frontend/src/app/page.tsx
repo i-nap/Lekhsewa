@@ -1,18 +1,10 @@
-// src/app/page.tsx
-import { SiteNavbar } from "@/components/Navbar";
-import LekhsewaInput from "@/components/LekhsewaInput";
+import ImageUploader from '../components/ImageUploader';
 
-export default function HomePage() {
+export default function Home() {
   return (
-    <main>
-      <SiteNavbar />
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '120px 20px 20px 20px', textAlign: 'center' }}>
-        <h1 className="text-4xl font-bold">Welcome to Lekhsewa</h1>
-        <p className="text-lg text-gray-600 mt-2">Your Nepali Typing Assistant</p>
-        <form style={{ width: '100%', maxWidth: '400px', marginTop: '30px' }}>
-          <LekhsewaInput />
-        </form>
-      </div>
+    <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'sans-serif', background: '#000', color: '#fff' }}>
+      <h1>Frontend for Image Upload Test</h1>
+      <ImageUploader />
     </main>
   );
 }
