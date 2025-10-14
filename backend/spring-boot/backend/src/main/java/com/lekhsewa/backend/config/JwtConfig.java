@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.jwt.*;
 
 @org.springframework.context.annotation.Configuration
 public class JwtConfig {
-  private static final String ISSUER = "https://dev-8tdgsuaod7wuib3a.us.auth0.com";
+  private static final String ISSUER = "https://dev-8tdgsuaod7wuib3a.us.auth0.com/";
   private static final String AUDIENCE = "https://dev-8tdgsuaod7wuib3a.us.auth0.com/api/v2/";
 
   @Bean

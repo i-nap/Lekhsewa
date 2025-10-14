@@ -22,7 +22,7 @@ public class MeSyncController {
     String full_name = jwt.getClaimAsString("full_name");
     String picture = jwt.getClaimAsString("picture");
     boolean verified = Boolean.TRUE.equals(jwt.getClaim("email_verified"));
-
+    System.out.println("chaliracha");
     jdbc.queryForObject(
       """
       INSERT INTO app_user (auth0_sub, email, full_name, email_verified)
