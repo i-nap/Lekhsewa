@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useRef, useEffect, useState } from 'react';
 
 interface DrawingCanvasProps {
@@ -12,47 +13,64 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ canvasRef }) => {
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-        canvas.width = 600;
-        canvas.height = 400;
 
         const context = canvas.getContext('2d');
         if (!context) return;
-
-        context.lineCap = 'round';
-        context.strokeStyle = 'black';
-        context.lineWidth = 3;
         contextRef.current = context;
+
+     
+        const handleResize = () => {
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            context.putImageData(imageData, 0, 0);
+            context.lineCap = 'round';
+            context.strokeStyle = 'black';
+            context.lineWidth = 3;
+        };
+
+        const resizeObserver = new ResizeObserver(handleResize);
+        resizeObserver.observe(canvas);
+        handleResize();
+        return () => {
+            resizeObserver.disconnect();
+        };
     }, [canvasRef]);
 
-    const startDrawing = ({ nativeEvent }: React.MouseEvent | React.TouchEvent) => {
-        const { offsetX, offsetY } = getCoordinates(nativeEvent);
-        contextRef.current?.beginPath();
-        contextRef.current?.moveTo(offsetX, offsetY);
+    const getCoordinates = (event: MouseEvent | TouchEvent) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return { offsetX: 0, offsetY: 0 };
+
+        const rect = canvas.getBoundingClientRect();
+        const clientX = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
+        const clientY = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+            offsetX: (clientX - rect.left) * scaleX,
+            offsetY: (clientY - rect.top) * scaleY,
+        };
+    };
+
+    const startDrawing = (event: React.MouseEvent | React.TouchEvent) => {
+        if (!contextRef.current) return;
+        const { offsetX, offsetY } = getCoordinates(event.nativeEvent);
+        contextRef.current.beginPath();
+        contextRef.current.moveTo(offsetX, offsetY);
         setIsDrawing(true);
     };
 
     const stopDrawing = () => {
-        contextRef.current?.closePath();
+        if (!contextRef.current) return;
+        contextRef.current.closePath();
         setIsDrawing(false);
     };
 
-    const draw = ({ nativeEvent }: React.MouseEvent | React.TouchEvent) => {
-        if (!isDrawing) return;
-        const { offsetX, offsetY } = getCoordinates(nativeEvent);
-        contextRef.current?.lineTo(offsetX, offsetY);
-        contextRef.current?.stroke();
-    };
-
-    const getCoordinates = (event: MouseEvent | TouchEvent) => {
-        if (event instanceof MouseEvent) {
-            return { offsetX: event.offsetX, offsetY: event.offsetY };
-        } else {
-            const rect = (event.target as HTMLElement).getBoundingClientRect();
-            return {
-                offsetX: event.touches[0].clientX - rect.left,
-                offsetY: event.touches[0].clientY - rect.top
-            };
-        }
+    const draw = (event: React.MouseEvent | React.TouchEvent) => {
+        if (!isDrawing || !contextRef.current) return;
+        const { offsetX, offsetY } = getCoordinates(event.nativeEvent);
+        contextRef.current.lineTo(offsetX, offsetY);
+        contextRef.current.stroke();
     };
 
     return (
@@ -65,7 +83,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ canvasRef }) => {
             onTouchStart={startDrawing}
             onTouchEnd={stopDrawing}
             onTouchMove={draw}
-            className="border-2 border-gray-400 rounded-lg shadow-md bg-white"
+            className="w-full h-full"
         />
     );
 };
