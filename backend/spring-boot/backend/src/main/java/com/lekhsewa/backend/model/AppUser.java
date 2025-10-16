@@ -32,4 +32,7 @@ public class AppUser {
 
     @Column(name="updated_at", insertable=false)
     private OffsetDateTime updatedAt;
+
+    @Column(name="plan", nullable = false)
+    private String plan = "free";
 }

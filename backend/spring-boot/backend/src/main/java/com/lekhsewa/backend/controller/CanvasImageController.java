@@ -3,6 +3,7 @@ package com.lekhsewa.backend.controller;
 import com.lekhsewa.backend.model.CanvasImage;
 import com.lekhsewa.backend.repository.CanvasImageRepository;
 import com.lekhsewa.backend.services.CanvasImageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
@@ -16,13 +17,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class CanvasImageController {
 
     private final CanvasImageService service;
-
-    public CanvasImageController(CanvasImageService service) {
-        this.service = service;
-    }
 
     @PostMapping(path = "/sendcanvasimage")
     public ResponseEntity<?> sendCanvasImage(@RequestParam("file") MultipartFile file) {
