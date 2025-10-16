@@ -8,63 +8,66 @@ export default function Home() {
     const [statusMessage, setStatusMessage] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const handleDoneClick = async () => {
-        const canvas = canvasRef.current;
-        if (!canvas) {
-            setStatusMessage('Error: Canvas not found.');
-            return;
-        }
 
-        canvas.toBlob(async (blob) => {
-            if (!blob) {
-                setStatusMessage('Error: Could not capture canvas image.');
-                return;
-            }
+    // const handleDoneClick = async () => {
+    //     const canvas = canvasRef.current;
+    //     if (!canvas) {
+    //         setStatusMessage('Error: Canvas not found.');
+    //         return;
+    //     }
 
-            const formData = new FormData();
-            formData.append('file', blob, 'canvas-image.png');
+    //     canvas.toBlob(async (blob) => {
+    //         if (!blob) {
+    //             setStatusMessage('Error: Could not capture canvas image.');
+    //             return;
+    //         }
 
-            setIsLoading(true);
-            setStatusMessage('Uploading your drawing...');
+    //         const formData = new FormData();
+    //         formData.append('file', blob, 'canvas-image.png');
 
-            try {
-                const response = await fetch('https://lekhsewa.onrender.com/api/sendcanvasimage', {
-                    method: 'POST',
-                    body: formData,
-                });
+    //         setIsLoading(true);
+    //         setStatusMessage('Uploading your drawing...');
 
-                const result = await response.json();
+    //         try {
+    //             const response = await fetch('https://lekhsewa.onrender.com/api/sendcanvasimage', {
+    //                 method: 'POST',
+    //                 body: formData,
+    //             });
 
-                if (!response.ok) {
-                    throw new Error(result.error || 'An unknown error occurred.');
-                }
+    //             const result = await response.json();
 
-                setStatusMessage(`Success! File saved as: ${result.FileName}`);
-                console.log('Server response:', result);
+    //             if (!response.ok) {
+    //                 throw new Error(result.error || 'An unknown error occurred.');
+    //             }
 
-            } catch (error) {
-                setStatusMessage(`Error: ${(error as Error).message}`);
-                console.error('Failed to send image:', error);
+    //             setStatusMessage(`Success! File saved as: ${result.FileName}`);
+    //             console.log('Server response:', result);
 
-            } finally {
-                setIsLoading(false);
-            }
+    //         } catch (error) {
+    //             setStatusMessage(`Error: ${(error as Error).message}`);
+    //             console.error('Failed to send image:', error);
 
-        }, 'image/png');
-    };
+    //         } finally {
+    //             setIsLoading(false);
+    //         }
 
-    const handleClearClick = () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const context = canvas.getContext('2d');
-        if (!context) return;
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        setStatusMessage('');
-    }
+    //     }, 'image/png');
+    // };
+
+    // const handleClearClick = () => {
+    //     const canvas = canvasRef.current;
+    //     if (!canvas) return;
+    //     const context = canvas.getContext('2d');
+    //     if (!context) return;
+    //     context.clearRect(0, 0, canvas.width, canvas.height);
+    //     setStatusMessage('');
+    // }
 
     return (
+        
         <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-8">
-            <div className="text-center mb-6">
+            
+            {/* <div className="text-center mb-6">
                 <h1 className="text-4xl font-bold text-gray-800">Nepali Typing </h1>
                 <p className="text-lg text-gray-600 mt-2">Draw your Nepali characters below.</p>
             </div>
@@ -92,7 +95,12 @@ export default function Home() {
                 <p className={`mt-4 text-lg font-medium ${statusMessage.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>
                     {statusMessage}
                 </p>
-            )}
+            )} */}
+
+            <button>
+
+            <a className='text-black' href="/auth/login">Login</a>
+            </button>
         </main>
     );
 }
