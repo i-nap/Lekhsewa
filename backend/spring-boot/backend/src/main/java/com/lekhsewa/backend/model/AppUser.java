@@ -22,7 +22,7 @@ public class AppUser {
     private String auth0Sub;
 
     private String email;
-    private String full_name;
+    private String username;
 
     @Column(name="email_verified")
     private Boolean emailVerified = false;
