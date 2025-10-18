@@ -19,6 +19,7 @@ export function AppNavbar() {
 
     const navItems = [
         { name: "Home", link: "/", external: false },
+        { name: "Form Developer", link: "/form-developer", external: false },
         { name: "About", link: "/about", external: false },
         { name: "Services", link: "/services", external: false },
         { name: "Contact US", link: "/contact-us", external: false },
