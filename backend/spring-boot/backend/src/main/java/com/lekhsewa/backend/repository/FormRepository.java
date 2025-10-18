@@ -17,4 +17,6 @@ public interface FormRepository extends JpaRepository<Form, Long> {
 
     @Query("select f from Form f where lower(f.name) like lower(concat(:q, '%'))")
     Page<Form> suggestByNamePrefix(@Param("q") String q, Pageable pageable);
+
+    Optional<Form> findGraphById(@Param("id") Long id);
 }
