@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { AppNavbar } from "@/components/AppNavbar";
+import Auth0ClientProvider from "./providers/Auth0ClientProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,15 +20,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="dark scroll-smooth">
       <body
         className={`${geistSans.variable} antialiased 
-                   text-slate-800     
-                   bg-gray-100         
-                   selection:bg-blue-500/20`}
+                   text-neutral-300     
+                   bg-neutral-950         
+                   selection:bg-black-500/30`}
       >
-        <AppNavbar />
-        <main>{children}</main>
+        <Auth0ClientProvider>
+          <AppNavbar />
+          <main>{children}</main>
+        </Auth0ClientProvider>
       </body>
     </html>
   );

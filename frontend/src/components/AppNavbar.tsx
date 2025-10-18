@@ -11,8 +11,12 @@ import {
     MobileNavMenu,
 } from "@/components/ui/resizable-navbar";
 import { useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 
 export function AppNavbar() {
+
+    const { loginWithRedirect, logout, user, isAuthenticated, isLoading } = useAuth0();
+
     const navItems = [
         { name: "Home", link: "/", external: false },
         { name: "About", link: "/about", external: false },
@@ -29,11 +33,28 @@ export function AppNavbar() {
                     <Link href="/" className="flex items-center">
                         <span className="text-xl font-bold">Lekhsewa</span>
                     </Link>
-
                     <NavItems items={navItems} />
                     <div className="flex items-center gap-4">
-                        <NavbarButton variant="secondary">Login</NavbarButton>
-                        <NavbarButton variant="primary">Sign Up</NavbarButton>
+                        {isLoading ? (
+                            <NavbarButton variant="secondary" disabled>Loading...</NavbarButton>
+                        ) : isAuthenticated ? (
+                            <>
+                                <span className="text-sm text-neutral-400 hidden sm:block">
+                                    {user?.name || user?.email}
+                                </span>
+                                <NavbarButton
+                                    variant="secondary"
+                                    onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+                                >
+                                    Log Out
+                                </NavbarButton>
+                            </>
+                        ) : (
+                            <>
+                                <NavbarButton variant="secondary" onClick={() => loginWithRedirect()}>Login</NavbarButton>
+                                <NavbarButton variant="primary" onClick={() => loginWithRedirect({ authorizationParams: { screen_hint: 'signup' } })}>Sign Up</NavbarButton>
+                            </>
+                        )}
                     </div>
                 </NavBody>
 
@@ -42,7 +63,6 @@ export function AppNavbar() {
                         <Link href="/" className="flex items-center">
                             <span className="text-xl font-bold">Lekhsewa</span>
                         </Link>
-
                         <MobileNavToggle
                             isOpen={isMobileMenuOpen}
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -57,7 +77,6 @@ export function AppNavbar() {
                             <a
                                 key={`mobile-link-${idx}`}
                                 href={item.link}
-                                // This logic correctly handles links without the 'external' property
                                 target={item.external ? "_blank" : "_self"}
                                 rel={item.external ? "noopener noreferrer" : ""}
                                 onClick={() => setIsMobileMenuOpen(false)}
@@ -66,21 +85,23 @@ export function AppNavbar() {
                                 <span className="block p-2">{item.name}</span>
                             </a>
                         ))}
-                        <div className="flex w-full flex-col gap-4 border-t border-neutral-200 pt-4 dark:border-neutral-700">
-                            <NavbarButton
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                variant="secondary"
-                                className="w-full"
-                            >
-                                Login
-                            </NavbarButton>
-                            <NavbarButton
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                variant="primary"
-                                className="w-full"
-                            >
-                                Sign Up
-                            </NavbarButton>
+                        <div className="flex w-full flex-col gap-4 border-t border-neutral-700 pt-4">
+                            {isLoading ? (
+                                <NavbarButton variant="secondary" className="w-full" disabled>Loading...</NavbarButton>
+                            ) : isAuthenticated ? (
+                                <NavbarButton
+                                    variant="secondary"
+                                    className="w-full"
+                                    onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+                                >
+                                    Log Out
+                                </NavbarButton>
+                            ) : (
+                                <>
+                                    <NavbarButton variant="secondary" className="w-full" onClick={() => loginWithRedirect()}>Login</NavbarButton>
+                                    <NavbarButton variant="primary" className="w-full" onClick={() => loginWithRedirect({ authorizationParams: { screen_hint: 'signup' } })}>Sign Up</NavbarButton>
+                                </>
+                            )}
                         </div>
                     </MobileNavMenu>
                 </MobileNav>
