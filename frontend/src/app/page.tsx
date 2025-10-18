@@ -4,12 +4,15 @@ import { useRef, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import DrawingCanvas from '@/components/DrawingCanvas';
 
+
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [statusMessage, setStatusMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
-    // --- API and Clear Logic (No changes needed here) ---
+    const { isAuthenticated, isLoading, loginWithRedirect, error } = useAuth0();
+
+    // --- API and Clear Logic ---
     const handleDoneClick = async () => {
         const canvas = canvasRef.current;
         if (!canvas) {
@@ -54,19 +57,55 @@ export default function Home() {
         setStatusMessage('');
     };
 
+    // Show a loading screen while Auth0 checks the session
+    if (isLoading) {
+        return (
+            <main className="flex flex-col items-center justify-center min-h-screen p-4 pt-24 pb-24">
+                <p className="text-lg text-neutral-300">Loading Session...</p>
+            </main>
+        );
+    }
+
+    // Show error message if Auth0 fails
+    if (error) {
+        return (
+            <main className="flex flex-col items-center justify-center min-h-screen p-4 pt-24 pb-24">
+                <p className="text-lg text-red-500">Authentication Error: {error.message}</p>
+            </main>
+        );
+    }
+
+    // If NOT authenticated, show a login prompt
+    if (!isAuthenticated) {
+        return (
+            <main className="flex flex-col items-center justify-center min-h-[80vh] p-4">
+                <div className="text-center w-full max-w-lg p-8 bg-neutral-900 rounded-lg border border-neutral-800">
+                    <h1 className="text-3xl font-bold text-white">Welcome to Lekhsewa</h1>
+                    <p className="text-lg text-neutral-400 mt-4 mb-8">Please log in or sign up to use the Nepali Character Canvas.</p>
+                    <button
+                        onClick={() => loginWithRedirect()}
+                        className="px-8 py-3 bg-white text-neutral-900 font-bold rounded-lg hover:bg-neutral-200 transition-colors"
+                    >
+                        Get Started
+                    </button>
+                </div>
+            </main>
+        );
+    }
+
+    // If authenticated, show your full application page
     return (
         <main className="flex flex-col items-center min-h-screen p-4 pt-24 pb-24 space-y-8 sm:space-y-12">
-            <div className="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-4 sm:p-8 space-y-6 shadow-lg">
+            <div className="w-full max-w-2xl rounded-2xl border border-neutral-800 bg-neutral-900 p-4 sm:p-8 space-y-6">
                 <div className="text-center">
-                    <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
+                    <h1 className="text-3xl sm:text-4xl font-bold text-neutral-100">
                         Nepali Character Canvas
                     </h1>
-                    <p className="text-md sm:text-lg text-slate-600 mt-2">
+                    <p className="text-md sm:text-lg text-neutral-400 mt-2">
                         Draw a single Nepali character in the box below.
                     </p>
                 </div>
-                {/* --- Drawing Canvas Section --- */}
-                <div className="w-full aspect-video rounded-lg bg-gray-50 border border-gray-300 overflow-hidden">
+                <div className="w-full aspect-video rounded-lg bg-black border border-neutral-800 overflow-hidden">
                     <DrawingCanvas canvasRef={canvasRef} />
                 </div>
                 <div className="flex flex-col items-center space-y-4 pt-2">
@@ -104,21 +143,20 @@ export default function Home() {
             </div>
 
             {/* --- Extra content --- */}
-            <div className="w-full max-w-2xl text-left space-y-6 rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-lg">
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">About Lekhsewa</h2>
-                <p className="text-slate-600 leading-relaxed">
+            <div className="w-full max-w-2xl text-left space-y-6 rounded-2xl border border border-neutral-800 bg-neutral-900 p-6 sm:p-8 shadow-lg">
+                <h2 className="text-2xl sm:text-3xl font-bold text-neutral-100">About Lekhsewa</h2>
+                <p className="text-neutral-400 leading-relaxed">
                     Lekhsewa is a cutting-edge project designed to bridge the gap between handwritten Nepali script and digital text. Using advanced machine learning models, our application can recognize and transcribe characters drawn on the canvas in real-time.
                 </p>
-                <p className="text-slate-600 leading-relaxed">
+                <p className="text-neutral-400 leading-relaxed">
                     Our mission is to preserve and promote the Nepali language in the digital age. This demo showcases the core recognition functionality of our system. Draw a character, click "Recognize", and see the magic happen!
                 </p>
-                <div className="h-48"></div> 
+                <div className="h-48"></div>
             </div>
 
-            <footer className="mt-8 text-sm text-slate-500">
+            <footer className="mt-8 text-sm text-neutral-300">
                 <p>Developed for Lekhsewa Project &copy; 2025</p>
             </footer>
-
         </main>
     );
 }
