@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppNavbar } from "@/components/AppNavbar";
 import Auth0ClientProvider from "./providers/Auth0ClientProvider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Auth0ClientProvider>
           <AppNavbar />
           <main>{children}</main>
+          <Toaster position="top-center" theme="dark" richColors />
         </Auth0ClientProvider>
       </body>
     </html>
