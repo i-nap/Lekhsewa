@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import Link from 'next/link';
 import { CanvasModal } from "@/components/CanvasModal";
-import { SpotifyButton } from "@/components/ui/SpotifyButton";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
@@ -50,10 +49,11 @@ export default function FormDisplayPage({ params }: { params: { formId: string }
 
     // Fetch form data based on the formId from the URL
     useEffect(() => {
+        const formId = params.formId;
         if (!params.formId) return;
 
         setIsFormLoading(true);
-        fetch(`https://lekhsewa.onrender.com/api/getformdata/${params.formId}`)
+        fetch(`https://lekhsewa.onrender.com/api/getformdata/${formId}`)
             .then(res => {
                 if (!res.ok) throw new Error("Form details could not be loaded");
                 return res.json();
@@ -65,7 +65,7 @@ export default function FormDisplayPage({ params }: { params: { formId: string }
             })
             .catch(err => toast.error(err.message))
             .finally(() => setIsFormLoading(false));
-    }, [params.formId]);
+    }, [params]);
 
     const handleInputClick = (field: FieldDTO) => {
         if (field.nepali_text) {
