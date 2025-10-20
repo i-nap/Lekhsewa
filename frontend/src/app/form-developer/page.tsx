@@ -1,244 +1,214 @@
 "use client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { CanvasModal } from "@/components/CanvasModal";
-import { SpotifyButton } from "@/components/ui/SpotifyButton"; // still used for login button
+import { SpotifyButton } from "@/components/ui/SpotifyButton";
 import { toast } from "sonner";
+import { Loader2, Search } from "lucide-react";
 
-interface FormField {
-    field: string;  // e.g., "first_name"
-    type: string;   // e.g., "text", "number", "email"
-    label: string;  // e.g., "पहिलो नाम"
+// --- Type Definitions based on your Backend DTOs ---
+interface FormSummary {
+    id: number;
+    name: string;
+    description: string;
 }
 
-const formSites = [
-    { id: "none", name: "Select a form..." },
-    { id: "lok_sewa", name: "Lok Sewa Aayog (Public Service Commission)" },
-    { id: "vehicle_reg", name: "Online Vehicle Registration" },
-    { id: "e_passport", name: "E-Passport Application" },
-];
+interface FieldOptionDTO {
+    value: string;
+    label: string;
+}
+
+interface FieldDTO {
+    id: number;
+    label: string;
+    field_name: string;
+    type: string; // e.g., "text", "number", "select", "date"
+    required: boolean;
+    nepali_text: boolean;
+    options: FieldOptionDTO[];
+}
+
+// --- Debounce Hook for Search ---
+const useDebounce = (value: string, delay: number) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedValue(value), delay);
+        return () => clearTimeout(handler);
+    }, [value, delay]);
+    return debouncedValue;
+};
+
+// --- Helper for Grid Layout ---
+const getFieldSpan = (fieldName: string): string => {
+    if (['firstName', 'middleName', 'lastName'].includes(fieldName)) return 'md:col-span-2';
+    if (['dob', 'age', 'gender'].includes(fieldName)) return 'md:col-span-2';
+    if (['province', 'district', 'wardNo'].includes(fieldName)) return 'md:col-span-2';
+    if (['citizenshipNo', 'issuingDistrict'].includes(fieldName)) return 'md:col-span-3';
+    return 'md:col-span-6';
+};
 
 export default function FormDeveloperPage() {
-    const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
+    const { isAuthenticated, isLoading: isAuthLoading, loginWithRedirect } = useAuth0();
 
-    // selection state
-    const [selectedForm, setSelectedForm] = useState<string>("none");
-
-    // search UI state for replacing <select>
+    const [selectedForm, setSelectedForm] = useState<FormSummary | null>(null);
     const [query, setQuery] = useState<string>("");
+    const [suggestions, setSuggestions] = useState<FormSummary[]>([]);
+    const [isSuggestLoading, setIsSuggestLoading] = useState(false);
     const [openList, setOpenList] = useState<boolean>(false);
     const searchRef = useRef<HTMLDivElement | null>(null);
+    const debouncedQuery = useDebounce(query, 300);
 
-    // form schema + data
-    const [fields, setFields] = useState<FormField[]>([]);
+    const [fields, setFields] = useState<FieldDTO[]>([]);
+    const [isFormLoading, setIsFormLoading] = useState(false);
     const [formData, setFormData] = useState<Record<string, string>>({});
 
-    // canvas modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentField, setCurrentField] = useState<{ field: string; label: string } | null>(null);
 
-    // close the dropdown on outside click
     useEffect(() => {
-        function handleClickOutside(e: MouseEvent) {
-            if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-                setOpenList(false);
-            }
-        }
+        const handleClickOutside = (e: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(e.target as Node)) setOpenList(false);
+        };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // derive filtered list for the search
-    const filteredSites = useMemo(() => {
-        const q = query.trim().toLowerCase();
-        const base = formSites.filter(s => s.id !== "none");
-        if (!q) return base;
-        return base.filter(s => s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q));
-    }, [query]);
-
-    // load fields when a form is picked
+    // 1. Fetch suggestions from backend
     useEffect(() => {
-        if (selectedForm === "none") {
+        if (debouncedQuery.trim()) {
+            setIsSuggestLoading(true);
+            fetch(`https://lekhsewa.onrender.com/api/suggest?q=${debouncedQuery}&limit=8`)
+                .then(res => res.json())
+                .then(data => setSuggestions(data.content || []))
+                .catch(err => toast.error("Could not load suggestions"))
+                .finally(() => setIsSuggestLoading(false));
+        } else {
+            setSuggestions([]);
+        }
+    }, [debouncedQuery]);
+
+    // 2. Fetch form fields from backend
+    useEffect(() => {
+        if (!selectedForm?.id) {
             setFields([]);
-            setFormData({});
             return;
         }
-
-        let mockData: FormField[] = [];
-        if (selectedForm === "lok_sewa") {
-            mockData = [
-                { field: "first_name", type: "text", label: "पहिलो नाम" },
-                { field: "last_name", type: "text", label: "थर" },
-                { field: "father_name", type: "text", label: "बुबाको नाम" },
-                { field: "age", type: "number", label: "उमेर" },
-            ];
-        } else if (selectedForm === "e_passport") {
-            mockData = [
-                { field: "given_name", type: "text", label: "Given Name" },
-                { field: "surname", type: "text", label: "Surname" },
-                { field: "nationality", type: "text", label: "Nationality" },
-            ];
-        } else if (selectedForm === "vehicle_reg") {
-            mockData = [
-                { field: "owner_name", type: "text", label: "Owner Name" },
-                { field: "vehicle_number", type: "text", label: "Vehicle Number" },
-                { field: "engine_no", type: "text", label: "Engine Number" },
-            ];
-        }
-
-        setFields(mockData);
-        setFormData({});
+        setIsFormLoading(true);
+        fetch(`https://lekhsewa.onrender.com/api/getformdata/${selectedForm.id}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Form details not found");
+                return res.json();
+            })
+            .then(data => {
+                setFields(data.fields || []);
+                setFormData({}); // Reset form data on new form selection
+            })
+            .catch(err => toast.error(err.message))
+            .finally(() => setIsFormLoading(false));
     }, [selectedForm]);
 
-    // open canvas on click
-    const handleInputClick = (field: string, label: string) => {
-        setCurrentField({ field, label });
-        setIsModalOpen(true);
+    const handleInputClick = (field: FieldDTO) => {
+        if (field.nepali_text) {
+            setCurrentField({ field: field.field_name, label: field.label });
+            setIsModalOpen(true);
+        }
     };
 
     const handleRecognize = (text: string) => {
         if (currentField) {
-            setFormData(prev => ({
-                ...prev,
-                [currentField.field]: text,
-            }));
+            setFormData(prev => ({ ...prev, [currentField.field]: text }));
             toast.success(`Filled ${currentField.label}`);
         }
     };
 
-    // allow typing to override recognized value
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({
-            ...prev,
-            [e.target.name]: e.target.value,
-        }));
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    // UI gates
-    if (isLoading) {
-        return <main className="text-center p-24">Loading session...</main>;
-    }
-
+    if (isAuthLoading) return <main className="flex justify-center p-24">Loading session...</main>;
     if (!isAuthenticated) {
         return (
-            <main className="flex flex-col items-center justify-center min-h-[80vh] p-4">
-                <div className="text-center w-full max-w-lg p-8 bg-neutral-900 rounded-lg border border-neutral-800">
+            <main className="flex items-center justify-center min-h-[80vh] p-4">
+                <div className="w-full max-w-lg p-8 text-center border rounded-lg bg-neutral-900 border-neutral-800">
                     <h1 className="text-3xl font-bold text-white">Access Denied</h1>
-                    <p className="text-lg text-neutral-400 mt-4 mb-8">
-                        You must be logged in to use the Form Developer.
-                    </p>
+                    <p className="mt-4 mb-8 text-lg text-neutral-400">You must be logged in to use the Form Developer.</p>
                     <SpotifyButton onClick={() => loginWithRedirect()}>Log In</SpotifyButton>
                 </div>
             </main>
         );
     }
-
     return (
         <>
             <main className="flex flex-col items-center min-h-screen p-4 pt-24 pb-24 space-y-8">
-                {/* Welcome */}
-                <div className="w-full max-w-3xl text-center p-8 bg-neutral-900 rounded-lg border border-neutral-800">
+                <div className="w-full max-w-3xl p-8 text-center border rounded-lg bg-neutral-900 border-neutral-800">
                     <h1 className="text-3xl font-bold text-white">Welcome, Form Developer!</h1>
-                    <p className="text-lg text-neutral-400 mt-4">
-                        Pick a form with the search box, then click any field to draw it in the canvas.
-                    </p>
+                    <p className="mt-4 text-lg text-neutral-400">Search for a form, then click any field that requires Nepali text to draw your entry.</p>
                 </div>
 
-                {/* Searchable form picker */}
-                <div className="w-full max-w-3xl rounded-2xl border border-neutral-800 bg-neutral-900 p-6 sm:p-8 space-y-6">
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                        Search an Online Form
-                    </label>
+                <div className="w-full max-w-3xl p-6 space-y-6 border rounded-2xl sm:p-8 bg-neutral-900 border-neutral-800">
+                    <label className="block mb-2 text-sm font-medium text-neutral-300">Search an Online Form</label>
                     <div ref={searchRef} className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <Search className="w-5 h-5 text-neutral-500" />
+                        </div>
                         <input
                             type="text"
                             value={query}
-                            onChange={(e) => {
-                                setQuery(e.target.value);
-                                setOpenList(true);
-                            }}
+                            onChange={(e) => { setQuery(e.target.value); setOpenList(true); }}
                             onFocus={() => setOpenList(true)}
                             placeholder="Type to search (e.g., 'passport', 'lok sewa')"
-                            className="w-full p-3 rounded-md bg-neutral-800 text-neutral-100 border border-neutral-700
-                         focus:outline-none focus:ring-2 focus:ring-green-500"
+                            className="w-full p-3 pl-10 border rounded-md bg-neutral-800 text-neutral-100 border-neutral-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                         />
                         {openList && (
-                            <div
-                                className="absolute z-20 mt-2 w-full max-h-64 overflow-auto rounded-md border border-neutral-800
-                           bg-black shadow-lg"
-                                role="listbox"
-                            >
-                                {filteredSites.length === 0 ? (
-                                    <div className="px-4 py-3 text-neutral-400">No matches</div>
-                                ) : (
-                                    filteredSites.map(site => (
-                                        <button
-                                            key={site.id}
-                                            type="button"
-                                            onClick={() => {
-                                                setSelectedForm(site.id);
-                                                setQuery(site.name);
-                                                setOpenList(false);
-                                            }}
-                                            className="w-full text-left px-4 py-3 hover:bg-neutral-800 text-neutral-100"
-                                            role="option"
-                                        >
-                                            {site.name}
-                                        </button>
-                                    ))
-                                )}
+                            <div className="absolute z-20 w-full mt-2 overflow-auto border rounded-md shadow-lg max-h-64 bg-black border-neutral-800">
+                                {isSuggestLoading && <div className="flex items-center justify-center p-4 text-neutral-400"><Loader2 className="w-5 h-5 mr-2 animate-spin" /></div>}
+                                {!isSuggestLoading && suggestions.length === 0 && <div className="px-4 py-3 text-neutral-400">{debouncedQuery ? "No matches found" : "Start typing to search"}</div>}
+                                {suggestions.map(site => (
+                                    <button key={site.id} type="button" onClick={() => { setSelectedForm(site); setQuery(site.name); setOpenList(false); }} className="w-full px-4 py-3 text-left text-neutral-100 hover:bg-neutral-800">{site.name}</button>
+                                ))}
                             </div>
                         )}
                     </div>
-
-                    {/* Selected form summary */}
-                    {selectedForm !== "none" && (
-                        <div className="text-sm text-neutral-400">
-                            Selected:{" "}
-                            <span className="text-neutral-200">
-                                {formSites.find(f => f.id === selectedForm)?.name}
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Dynamic fields, no form wrapper, no submit */}
-                    {fields.length > 0 && (
-                        <div className="mt-4 space-y-6">
-                            {fields.map((field) => (
-                                <div key={field.field}>
-                                    <label
-                                        htmlFor={field.field}
-                                        className="block text-lg font-medium text-neutral-200 mb-2"
-                                    >
-                                        {field.label}
-                                    </label>
-                                    <input
-                                        type={field.type}
-                                        id={field.field}
-                                        name={field.field}
-                                        value={formData[field.field] || ""}
-                                        onChange={handleInputChange}
-                                        onClick={() => handleInputClick(field.field, field.label)}
-                                        placeholder={`Click to draw or type for ${field.label}...`}
-                                        className="w-full p-4 rounded-lg bg-black text-neutral-200
-                               border border-neutral-800 caret-green-500
-                               focus:outline-none focus:ring-2 focus:ring-green-500
-                               cursor-pointer"
-                                        readOnly
-                                    />
-                                </div>
-                            ))}
+                    {isFormLoading && <div className="flex justify-center items-center h-40"><Loader2 className="w-8 h-8 text-green-500 animate-spin" /></div>}
+                    {fields.length > 0 && !isFormLoading && (
+                        <div className="pt-6 mt-8 border-t border-neutral-800">
+                            <h2 className="mb-6 text-2xl font-bold text-white">{selectedForm?.name}</h2>
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-6">
+                                {fields.map((field) => (
+                                    <div key={field.id} className={getFieldSpan(field.field_name)}>
+                                        <label htmlFor={field.field_name} className="block mb-2 text-sm font-medium text-neutral-200">{field.label}</label>
+                                        {field.type === 'select' ? (
+                                            <select
+                                                id={field.field_name}
+                                                name={field.field_name}
+                                                value={formData[field.field_name] || ''}
+                                                onChange={handleInputChange}
+                                                className="w-full p-4 border rounded-lg bg-black text-neutral-200 border-neutral-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                            >
+                                                <option value="" disabled>Select an option</option>
+                                                {field.options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                            </select>
+                                        ) : (
+                                            <input
+                                                type={field.type}
+                                                id={field.field_name}
+                                                name={field.field_name}
+                                                value={formData[field.field_name] || ""}
+                                                onChange={handleInputChange}
+                                                onClick={() => handleInputClick(field)}
+                                                placeholder={field.nepali_text ? `Click to draw ${field.label}...` : `Enter ${field.label}...`}
+                                                className={`w-full p-4 border rounded-lg bg-black text-neutral-200 border-neutral-800 caret-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 ${field.nepali_text ? 'cursor-pointer' : ''}`}
+                                                readOnly={field.nepali_text}
+                                            />
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
             </main>
-
-            <CanvasModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onRecognize={handleRecognize}
-                fieldName={currentField?.label || "Field"}
-            />
+            <CanvasModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onRecognize={handleRecognize} fieldName={currentField?.label || "Field"} />
         </>
     );
 }
