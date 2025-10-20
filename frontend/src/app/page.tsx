@@ -164,17 +164,26 @@ export default function Home() {
           )}
         </div>
 
-        <div className="flex w-full space-x-4">
+        <div className="flex w-full justify-center space-x-4 pt-2">
           <button
             onClick={handleClearClick}
             disabled={isUploading}
-            className="flex-1 ...">
+            className="px-8 py-3 bg-neutral-800 text-neutral-300 font-semibold rounded-lg border border-neutral-700
+                                   hover:bg-neutral-700 hover:border-neutral-600
+                                   disabled:opacity-50 disabled:cursor-not-allowed
+                                   transition-colors duration-200"
+          >
             Clear
           </button>
           <button
             onClick={handleDoneClick}
             disabled={isUploading}
-            className="flex-1 ...">
+            className="px-8 py-3 bg-white text-neutral-900 font-bold rounded-lg
+                                   hover:bg-neutral-200
+                                   focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-opacity-75
+                                   disabled:opacity-50 disabled:cursor-not-allowed
+                                   transition-colors duration-200"
+          >
             {isUploading ? 'Processing...' : 'Recognize'}
           </button>
         </div>
