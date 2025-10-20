@@ -35,10 +35,11 @@ export default function Home() {
                     body: formData,
                 });
                 const result = await response.json();
+                console.log(result);
                 if (!response.ok) throw new Error(result.error);
 
                 setStatusMessage(`Success! Predicted character: ${result.recognizedText}`);
-                setRecognizedText(result.recognizedText);
+                setRecognizedText(result.FileName);
                 toast.success(`Recognized: ${result.recognizedText}`, { id: toastId });
             } catch (error) {
                 setStatusMessage(`Error: ${(error as Error).message}`);
@@ -109,7 +110,7 @@ export default function Home() {
                         Draw a single Nepali character in the box below.
                     </p>
                 </div>
-                <div className="w-full aspect-video rounded-lg bg-black border border-neutral-800 overflow-hidden">
+                <div className="w-full aspect-video rounded-lg bg-white border border-neutral-800 overflow-hidden">
                     <DrawingCanvas canvasRef={canvasRef} />
                 </div>
                 {recognizedText && (
