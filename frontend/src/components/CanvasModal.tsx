@@ -75,7 +75,7 @@ export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRec
                     Draw for field: <span className="text-[#1ED760]">{fieldName}</span>
                 </h2>
 
-                <div className="w-full aspect-video rounded-lg bg-black border border-neutral-800 overflow-hidden">
+                <div className="w-full aspect-video rounded-lg bg-white border border-neutral-800 overflow-hidden">
                     <DrawingCanvas canvasRef={canvasRef} />
                 </div>
 
