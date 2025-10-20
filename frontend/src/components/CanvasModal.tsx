@@ -11,6 +11,17 @@ interface CanvasModalProps {
     fieldName: string;
 }
 
+// Helper function to check if the canvas is empty
+function isCanvasEmpty(canvas: HTMLCanvasElement) {
+    const context = canvas.getContext('2d');
+    if (!context) return true;
+    const pixelData = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let i = 3; i < pixelData.length; i += 4) {
+        if (pixelData[i] > 0) return false;
+    }
+    return true;
+}
+
 export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRecognize, fieldName }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -27,6 +38,12 @@ export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRec
     const handleRecognizeClick = async () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
+
+        // Check if canvas is empty
+        if (isCanvasEmpty(canvas)) {
+            toast.error("Canvas is empty. Please draw something.");
+            return;
+        }
 
         canvas.toBlob(async (blob) => {
             if (!blob) return;
