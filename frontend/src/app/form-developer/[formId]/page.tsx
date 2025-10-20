@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CanvasModal } from "@/components/CanvasModal";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { useParams } from "next/navigation";
 
 // --- Type Definitions based on your Backend DTOs ---
 interface FieldOptionDTO {
@@ -35,8 +36,8 @@ const getFieldSpan = (fieldName: string): string => {
     return 'md:col-span-6';
 };
 
-// The component receives `params` from the URL
-export default function FormDisplayPage({ params }: { params: { formId: string } }) {
+export default function FormDisplayPage() {
+    const params = useParams();
     const { isAuthenticated, isLoading: isAuthLoading, loginWithRedirect } = useAuth0();
 
     const [formDetails, setFormDetails] = useState<FormDTO | null>(null);
@@ -50,7 +51,7 @@ export default function FormDisplayPage({ params }: { params: { formId: string }
     // Fetch form data based on the formId from the URL
     useEffect(() => {
         const formId = params.formId;
-        if (!params.formId) return;
+        if (!formId) return;
 
         setIsFormLoading(true);
         fetch(`https://lekhsewa.onrender.com/api/getformdata/${formId}`)
@@ -65,7 +66,7 @@ export default function FormDisplayPage({ params }: { params: { formId: string }
             })
             .catch(err => toast.error(err.message))
             .finally(() => setIsFormLoading(false));
-    }, [params]);
+    }, [params.formId]);
 
     const handleInputClick = (field: FieldDTO) => {
         if (field.nepali_text) {
