@@ -5,6 +5,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { SpotifyButton } from '@/components/ui/SpotifyButton';
+import DrawingCanvas from '@/components/DrawingCanvas';
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
