@@ -25,8 +25,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="relative z-0 min-h-screen">
           <Auth0ClientProvider>
             <DotPattern
-              className="[mask-image:radial-gradient(ellipse_at_center,white,transparent_70%)]
-                         fill-neutral-900 z-[-10]" // 4. Set color and position
+              width={24}
+              height={24}
+              cx={1.5}
+              cy={1.5}
+              cr={1.5}
+              className="fixed inset-0 z-[0] fill-neutral-700/60 [mask-image:radial-gradient(ellipse_at_center,white,transparent_85%)]"
             />
             <div className="relative z-10">
               <AppNavbar />
