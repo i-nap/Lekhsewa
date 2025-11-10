@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'; // 1. Import the router
 import { SpotifyButton } from "@/components/ui/SpotifyButton";
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
+import { getFormSuggestions } from "@/api";
 
 // --- Type Definitions ---
 interface FormSummary {
@@ -23,10 +24,9 @@ const useDebounce = (value: string, delay: number) => {
     return debouncedValue;
 };
 
-
 export default function FormDeveloperSearchPage() {
     const { isAuthenticated, isLoading: isAuthLoading, loginWithRedirect } = useAuth0();
-    const router = useRouter(); // 2. Initialize the router for navigation
+    const router = useRouter();
 
     const [query, setQuery] = useState<string>("");
     const [suggestions, setSuggestions] = useState<FormSummary[]>([]);
@@ -43,12 +43,11 @@ export default function FormDeveloperSearchPage() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Fetch suggestions from backend (no changes here)
     useEffect(() => {
         if (debouncedQuery.trim()) {
             setIsSuggestLoading(true);
-            fetch(`https://lekhsewa.onrender.com/api/suggest?q=${debouncedQuery}&limit=8`)
-                .then(res => res.json())
+            // Use the API service function
+            getFormSuggestions(debouncedQuery)
                 .then(data => setSuggestions(data.content || []))
                 .catch(() => toast.error("Could not load suggestions"))
                 .finally(() => setIsSuggestLoading(false));
@@ -57,11 +56,9 @@ export default function FormDeveloperSearchPage() {
         }
     }, [debouncedQuery]);
 
-    // 3. Handle navigation when a form is clicked
     const handleFormSelect = (form: FormSummary) => {
         setQuery(form.name);
         setOpenList(false);
-        // Navigate to the new dynamic page
         router.push(`/form-developer/${form.id}`);
     };
 

@@ -3,6 +3,7 @@ import React, { useRef, useState } from 'react';
 import DrawingCanvas from '@/components/DrawingCanvas';
 import { SpotifyButton } from './ui/SpotifyButton';
 import { toast } from 'sonner';
+import { postCanvasImage } from '@/api';
 
 interface CanvasModalProps {
     isOpen: boolean;
@@ -11,15 +12,11 @@ interface CanvasModalProps {
     fieldName: string;
 }
 
-// Helper function to check if the canvas is empty
 function isCanvasEmpty(canvas: HTMLCanvasElement) {
     const context = canvas.getContext('2d');
     if (!context) return true;
-    const pixelData = context.getImageData(0, 0, canvas.width, canvas.height).data;
-    for (let i = 3; i < pixelData.length; i += 4) {
-        if (pixelData[i] > 0) return false;
-    }
-    return true;
+    const pixelBuffer = new Uint32Array(context.getImageData(0, 0, canvas.width, canvas.height).data.buffer);
+    return !pixelBuffer.some(color => color !== 0);
 }
 
 export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRecognize, fieldName }) => {
@@ -39,7 +36,6 @@ export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRec
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        // Check if canvas is empty
         if (isCanvasEmpty(canvas)) {
             toast.error("Canvas is empty. Please draw something.");
             return;
@@ -48,21 +44,16 @@ export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRec
         canvas.toBlob(async (blob) => {
             if (!blob) return;
 
-            const formData = new FormData();
-            formData.append('file', blob, 'canvas-image.png');
-
             setIsUploading(true);
             const toastId = toast.loading('Recognizing character...');
 
             try {
-                const response = await fetch('https://lekhsewa.onrender.com/api/sendcanvasimage', {
-                    method: 'POST',
-                    body: formData,
-                });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error);
-                onRecognize(result.recognizedText);
-                toast.success(`Set field to: ${result.recognizedText}`, { id: toastId });
+                // Use the API service function
+                const result = await postCanvasImage(blob);
+
+                const text = result.recognizedText || result.FileName;
+                onRecognize(text);
+                toast.success(`Set field to: ${text}`, { id: toastId });
                 onClose();
             } catch (error) {
                 toast.error((error as Error).message, { id: toastId });
@@ -73,46 +64,16 @@ export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRec
     };
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-            onClick={onClose}
-        >
-            <div
-                className="relative w-full max-w-2xl rounded-2xl border border-neutral-800 bg-neutral-900 p-8 space-y-6"
-                onClick={(e) => e.stopPropagation()} 
-            >
-                <button
-                    onClick={onClose}
-                    className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white text-black font-bold text-lg"
-                >
-                    &times;
-                </button>
-
-                <h2 className="text-2xl font-bold text-center text-white">
-                    Draw for field: <span className="text-[#1ED760]">{fieldName}</span>
-                </h2>
-
-                <div className="w-full aspect-video rounded-lg bg-white border border-neutral-800 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
+            <div className="relative w-full max-w-2xl p-8 space-y-6 border rounded-2xl bg-neutral-900 border-neutral-800" onClick={(e) => e.stopPropagation()}>
+                <button onClick={onClose} className="absolute w-8 h-8 font-bold text-black bg-white rounded-full -top-3 -right-3 text-lg">&times;</button>
+                <h2 className="text-2xl font-bold text-center text-white">Draw for field: <span className="text-[#1ED760]">{fieldName}</span></h2>
+                <div className="w-full overflow-hidden border rounded-lg aspect-video bg-white border-neutral-800">
                     <DrawingCanvas canvasRef={canvasRef} />
                 </div>
-
                 <div className="flex w-full space-x-4">
-                    <button
-                        onClick={handleClearClick}
-                        disabled={isUploading}
-                        className="flex-1 px-6 py-3 bg-neutral-800 text-neutral-300 font-semibold rounded-lg border border-neutral-700
-                       hover:bg-neutral-700 disabled:opacity-50 transition-colors"
-                    >
-                        Clear
-                    </button>
-
-                    <SpotifyButton
-                        onClick={handleRecognizeClick}
-                        disabled={isUploading}
-                        className="flex-1 py-3"
-                    >
-                        {isUploading ? 'Recognizing...' : 'Recognize'}
-                    </SpotifyButton>
+                    <button onClick={handleClearClick} disabled={isUploading} className="flex-1 px-6 py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 disabled:opacity-50">Clear</button>
+                    <SpotifyButton onClick={handleRecognizeClick} disabled={isUploading} className="flex-1 py-3">{isUploading ? 'Recognizing...' : 'Recognize'}</SpotifyButton>
                 </div>
             </div>
         </div>
