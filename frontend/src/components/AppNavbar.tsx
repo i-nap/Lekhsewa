@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/resizable-navbar";
 import { useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { User } from "lucide-react";
 
 export function AppNavbar() {
 
@@ -30,19 +31,35 @@ export function AppNavbar() {
     return (
         <div className="sticky top-0 z-50 w-full">
             <Navbar>
+                {/* Desktop Navigation */}
                 <NavBody>
                     <Link href="/" className="flex items-center">
                         <span className="text-xl font-bold">Lekhsewa</span>
                     </Link>
+
                     <NavItems items={navItems} />
+
                     <div className="flex items-center gap-4">
                         {isLoading ? (
                             <NavbarButton variant="secondary" disabled>Loading...</NavbarButton>
                         ) : isAuthenticated ? (
                             <>
-                                <span className="text-sm text-neutral-400 hidden sm:block">
-                                    {user?.name || user?.email}
-                                </span>
+                                <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-neutral-800">
+                                    {user?.picture ? (
+                                        <img
+                                            src={user.picture}
+                                            alt={user.name || "User"}
+                                            className="w-8 h-8 rounded-full border border-neutral-700"
+                                        />
+                                    ) : (
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-neutral-800 border border-neutral-700">
+                                            <User className="w-4 h-4 text-neutral-400" />
+                                        </div>
+                                    )}
+                                    <span className="text-sm font-medium text-neutral-300">
+                                        {user?.given_name || user?.nickname || user?.name?.split(' ')[0]}
+                                    </span>
+                                </div>
                                 <NavbarButton
                                     variant="secondary"
                                     onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
@@ -75,28 +92,42 @@ export function AppNavbar() {
                         onClose={() => setIsMobileMenuOpen(false)}
                     >
                         {navItems.map((item, idx) => (
-                            <a
+                            <Link
                                 key={`mobile-link-${idx}`}
                                 href={item.link}
-                                target={item.external ? "_blank" : "_self"}
-                                rel={item.external ? "noopener noreferrer" : ""}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className="relative text-neutral-600 dark:text-neutral-300"
                             >
                                 <span className="block p-2">{item.name}</span>
-                            </a>
+                            </Link>
                         ))}
+
                         <div className="flex w-full flex-col gap-4 border-t border-neutral-700 pt-4">
                             {isLoading ? (
                                 <NavbarButton variant="secondary" className="w-full" disabled>Loading...</NavbarButton>
                             ) : isAuthenticated ? (
-                                <NavbarButton
-                                    variant="secondary"
-                                    className="w-full"
-                                    onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-                                >
-                                    Log Out
-                                </NavbarButton>
+                                <>
+                                    <div className="flex items-center gap-3 px-2 mb-2">
+                                        {user?.picture ? (
+                                            <img src={user.picture} alt="User" className="w-10 h-10 rounded-full border border-neutral-700" />
+                                        ) : (
+                                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-neutral-800 border border-neutral-700">
+                                                <User className="w-5 h-5 text-neutral-400" />
+                                            </div>
+                                        )}
+                                        <div>
+                                            <p className="text-neutral-200 font-medium">{user?.name}</p>
+                                            <p className="text-xs text-neutral-500">{user?.email}</p>
+                                        </div>
+                                    </div>
+                                    <NavbarButton
+                                        variant="secondary"
+                                        className="w-full"
+                                        onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+                                    >
+                                        Log Out
+                                    </NavbarButton>
+                                </>
                             ) : (
                                 <>
                                     <NavbarButton variant="secondary" className="w-full" onClick={() => loginWithRedirect()}>Login</NavbarButton>
