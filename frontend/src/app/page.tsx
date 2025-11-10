@@ -6,31 +6,30 @@ import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { SpotifyButton } from '@/components/ui/SpotifyButton';
 import DrawingCanvas from '@/components/DrawingCanvas';
+import { postCanvasImage } from '@/api';
 
 // Helper function to check if the canvas is empty
 function isCanvasEmpty(canvas: HTMLCanvasElement) {
   const context = canvas.getContext('2d');
-  if (!context) return true; // Cannot get context, assume empty
-
-  // Get all pixel data
-  const pixelData = context.getImageData(0, 0, canvas.width, canvas.height).data;
-
-  // Check if any pixel has a non-zero alpha value (is not transparent)
-  for (let i = 3; i < pixelData.length; i += 4) {
-    if (pixelData[i] > 0) {
-      return false; // Found a non-transparent pixel
-    }
-  }
-  return true; // All pixels are transparent
+  if (!context) return true;
+  // const pixelData = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  // for (let i = 3; i < pixelData.length; i += 4) {
+  //   if (pixelData[i] > 0) {
+  //     return false; 
+  //   }
+  // }
+  // return true; 
+  const pixelBuffer = new Uint32Array(
+    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+  );
+  return !pixelBuffer.some(color => color !== 0);
 }
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [statusMessage, setStatusMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-
   const [recognizedText, setRecognizedText] = useState<string>('');
-
   const { isAuthenticated, isLoading, loginWithRedirect, error } = useAuth0();
 
   // --- API and Clear Logic ---
@@ -99,7 +98,7 @@ export default function Home() {
     if (!context) return;
     context.clearRect(0, 0, canvas.width, canvas.height);
     setRecognizedText('');
-    setStatusMessage(''); // Also clear status message
+    setStatusMessage(''); 
   };
 
   const handleCopy = () => {
@@ -203,18 +202,6 @@ export default function Home() {
           </button>
         </div>
       </div>
-
-      {/* --- Extra content --- */}
-      {/* <div className="w-full max-w-2xl text-left space-y-6 rounded-2xl border border border-neutral-800 bg-neutral-900 p-6 sm:p-8 shadow-lg">
-                <h2 className="text-2xl sm:text-3xl font-bold text-neutral-100">About Lekhsewa</h2>
-                <p className="text-neutral-400 leading-relaxed">
-                    Lekhsewa is a cutting-edge project designed to bridge the gap between handwritten Nepali script and digital text. Using advanced machine learning models, our application can recognize and transcribe characters drawn on the canvas in real-time.
-                </p>
-                <p className="text-neutral-400 leading-relaxed">
-                    Our mission is to preserve and promote the Nepali language in the digital age. This demo showcases the core recognition functionality of our system. Draw a character, click "Recognize", and see the magic happen!
-                </p>
-                <div className="h-48"></div>
-            </div> */}
 
       <footer className="mt-8 text-sm text-neutral-500">
         <p>Developed for Lekhsewa Project &copy; 2025</p>
