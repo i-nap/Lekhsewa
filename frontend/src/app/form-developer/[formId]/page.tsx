@@ -7,19 +7,13 @@ import { CanvasModal } from "@/components/CanvasModal";
 import { SpotifyButton } from "@/components/ui/SpotifyButton";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { getFormById } from "@/api"; // Import from new API folder
+import { getFormById } from "@/api";
+import NepaliDate from 'nepali-date-converter';
 
-// --- Type Definitions based on your Backend DTOs ---
+// --- Type Definitions ---
 interface FieldOptionDTO { value: string; label: string; }
 interface FieldDTO { id: number; label: string; field_name: string; type: string; required: boolean; nepali_text: boolean; options: FieldOptionDTO[]; }
 interface FormDTO { id: number; name: string; description: string; }
-
-// --- Helper for Grid Layout ---
-const getFieldSpan = (fieldName: string): string => {
-    if (['firstName', 'middleName', 'lastName', 'dob', 'age', 'gender', 'province', 'district', 'wardNo'].includes(fieldName)) return 'md:col-span-2';
-    if (['citizenshipNo', 'issuingDistrict'].includes(fieldName)) return 'md:col-span-3';
-    return 'md:col-span-6';
-};
 
 export default function FormDisplayPage() {
     const params = useParams();
@@ -33,12 +27,11 @@ export default function FormDisplayPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentField, setCurrentField] = useState<{ field: string; label: string } | null>(null);
 
+    // Fetch form data 
     useEffect(() => {
         const formId = params.formId as string;
         if (!formId) return;
-
         setIsFormLoading(true);
-        // Use the API service function
         getFormById(formId)
             .then(data => {
                 setFormDetails(data.form);
@@ -47,8 +40,9 @@ export default function FormDisplayPage() {
             })
             .catch(err => toast.error((err as Error).message))
             .finally(() => setIsFormLoading(false));
-    }, [params.formId]); // Correctly depend on params.formId
+    }, [params.formId]);
 
+    // --- Input Handlers ---
     const handleInputClick = (field: FieldDTO) => {
         if (field.nepali_text) {
             setCurrentField({ field: field.field_name, label: field.label });
@@ -63,22 +57,33 @@ export default function FormDisplayPage() {
         }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    // "smart" handler for all field changes
+    const handleFieldChange = (fieldName: string, value: string) => {
+        setFormData(prev => ({ ...prev, [fieldName]: value }));
+        try {
+            // --- Date Conversion Logic ---
+            if (fieldName === 'dob_bs') {
+                // User typed in Nepali Date, convert to English (AD)
+                const adDate = new NepaliDate(value).toJsDate();
+                // Format to YYYY-MM-DD
+                const adString = adDate.toISOString().split('T')[0];
+                setFormData(prev => ({ ...prev, dob_bs: value, dob_ad: adString }));
+
+            } else if (fieldName === 'dob_ad') {
+                // User typed in English Date, convert to Nepali (BS)
+                const bsNepaliDate = new NepaliDate(new Date(value));
+                // Format to YYYY-MM-DD (NepaliDate months are 0-based)
+                const bsString = `${bsNepaliDate.getYear()}-${String(bsNepaliDate.getMonth() + 1).padStart(2, '0')}-${String(bsNepaliDate.getDate()).padStart(2, '0')}`;
+                setFormData(prev => ({ ...prev, dob_ad: value, dob_bs: bsString }));
+            }
+        } catch (error) {
+            // If the date is invalid (e.g., "2081-02-33"), do nothing
+            console.warn("Invalid date for conversion:", value);
+        }
     };
 
     if (isAuthLoading) return <main className="flex justify-center p-24">Loading session...</main>;
-    if (!isAuthenticated) {
-        return (
-            <main className="flex items-center justify-center min-h-[80vh] p-4">
-                <div className="w-full max-w-lg p-8 text-center border rounded-lg bg-neutral-900 border-neutral-800">
-                    <h1 className="text-3xl font-bold text-white">Access Denied</h1>
-                    <p className="mt-4 mb-8 text-lg text-neutral-400">You must be logged in to view this page.</p>
-                    <SpotifyButton onClick={() => loginWithRedirect()}>Log In</SpotifyButton>
-                </div>
-            </main>
-        );
-    }
+    if (!isAuthenticated) return <main className="flex items-center justify-center min-h-[80vh] p-4">...</main>;
 
     return (
         <>
@@ -92,26 +97,66 @@ export default function FormDisplayPage() {
                         <div className="flex justify-center items-center h-64"><Loader2 className="w-10 h-10 text-green-500 animate-spin" /></div>
                     ) : (
                         <div className="p-6 space-y-8 border rounded-2xl sm:p-8 bg-neutral-900 border-neutral-800">
+                            {/* Form Header*/}
                             <div className="text-center">
                                 <h1 className="text-3xl font-bold text-white">{formDetails?.name}</h1>
                                 {formDetails?.description && <p className="mt-2 text-lg text-neutral-400">{formDetails.description}</p>}
                             </div>
+
+                            {/* Form Grid */}
                             {fields.length > 0 && (
                                 <div className="pt-6 border-t border-neutral-800">
-                                    <div className="grid grid-cols-1 gap-6 md:grid-cols-6">
+                                    <div className="space-y-6">
                                         {fields.map((field) => (
-                                            <div key={field.id} className={getFieldSpan(field.field_name)}>
-                                                <label htmlFor={field.field_name} className="block mb-2 text-sm font-medium text-neutral-200">{field.label}</label>
-                                                {field.type === 'select' ? (
-                                                    <select id={field.field_name} name={field.field_name} value={formData[field.field_name] || ''} onChange={handleInputChange} className="w-full p-4 border rounded-lg bg-black text-neutral-200 border-neutral-800 focus:outline-none focus:ring-2 focus:ring-green-500">
-                                                        <option value="" disabled>Select an option</option>
-                                                        {field.options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                                                    </select>
-                                                ) : (
-                                                    <input type={field.type} id={field.field_name} name={field.field_name} value={formData[field.field_name] || ""} onChange={handleInputChange} onClick={() => handleInputClick(field)} placeholder={field.nepali_text ? `Click to draw ${field.label}...` : `Enter ${field.label}...`} className={`w-full p-4 border rounded-lg bg-black text-neutral-200 border-neutral-800 caret-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 ${field.nepali_text ? 'cursor-pointer' : ''}`} readOnly={field.nepali_text} />
-                                                )}
+                                            <div
+                                                key={field.id}
+                                                className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 items-center"
+                                            >
+                                                {/* Column 1: Label */}
+                                                <label
+                                                    htmlFor={field.field_name}
+                                                    className="block text-sm font-medium text-neutral-200 md:text-right"
+                                                >
+                                                    {field.label} {field.required && <span className="text-red-500">*</span>}
+                                                </label>
+
+                                                {/* Column 2: Input/Select */}
+                                                <div className="md:col-span-2">
+                                                    {field.type === 'select' ? (
+                                                        <select
+                                                            id={field.field_name}
+                                                            name={field.field_name}
+                                                            value={formData[field.field_name] || ''}
+                                                            onChange={(e) => handleFieldChange(field.field_name, e.target.value)}
+                                                            className="w-full p-4 border rounded-lg bg-black text-neutral-200 border-neutral-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                            required={field.required}
+                                                        >
+                                                            <option value="" disabled>Select {field.label}</option>
+                                                            {field.options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                                        </select>
+                                                    ) : (
+                                                        <input
+                                                            type={field.type}
+                                                            id={field.field_name}
+                                                            name={field.field_name}
+                                                            value={formData[field.field_name] || ""}
+                                                            onChange={(e) => handleFieldChange(field.field_name, e.target.value)}
+                                                            onClick={() => handleInputClick(field)}
+                                                            placeholder={field.nepali_text ? `Click to draw ${field.label}...` : `Enter ${field.label}...`}
+                                                            className={`w-full p-4 border rounded-lg bg-black text-neutral-200 border-neutral-800 caret-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 ${field.nepali_text ? 'cursor-pointer hover:border-green-500/50' : ''}`}
+                                                            readOnly={field.nepali_text}
+                                                            required={field.required}
+                                                        />
+                                                    )}
+                                                </div>
                                             </div>
                                         ))}
+                                    </div>
+
+                                    <div className="mt-8">
+                                        <SpotifyButton className="w-full py-4" onClick={(e) => { e.preventDefault(); toast.success("Form submission coming soon!"); }}>
+                                            Submit Application
+                                        </SpotifyButton>
                                     </div>
                                 </div>
                             )}
