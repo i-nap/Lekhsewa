@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppNavbar } from "@/components/AppNavbar";
 import Auth0ClientProvider from "./providers/Auth0ClientProvider";
 import { Toaster } from "sonner";
+import DotPattern from "@/components/ui/dot-pattern";
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 
@@ -21,11 +22,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                    bg-neutral-950         
                    selection:bg-black-500/30`}
       >
-        <Auth0ClientProvider>
-          <AppNavbar />
-          <main>{children}</main>
-          <Toaster position="top-center" theme="dark" richColors />
-        </Auth0ClientProvider>
+        <div className="relative z-0 min-h-screen">
+          <Auth0ClientProvider>
+            <DotPattern
+              className="[mask-image:radial-gradient(ellipse_at_center,white,transparent_70%)]
+                         fill-neutral-900 z-[-10]" // 4. Set color and position
+            />
+            <div className="relative z-10">
+              <AppNavbar />
+              <main>{children}</main>
+            </div>
+            <Toaster position="top-center" theme="dark" richColors />
+          </Auth0ClientProvider>
+        </div>
       </body>
     </html>
   );
