@@ -82,7 +82,7 @@ export default function FormDeveloperSearchPage() {
         <main className="flex flex-col items-center min-h-screen p-4 pt-24 pb-24 space-y-8">
             <div className="w-full max-w-3xl p-8 text-center border rounded-lg bg-neutral-900 border-neutral-800">
                 <h1 className="text-3xl font-bold text-white">Form Search</h1>
-                <p className="mt-4 text-lg text-neutral-400">Find the government form you need to fill out. We'll help you draw the rest.</p>
+                <p className="mt-4 text-lg text-neutral-400">Find the government form you need to fill out. We&apos;ll help you draw the rest.</p>
             </div>
 
             <div className="w-full max-w-3xl p-6 space-y-6 border rounded-2xl sm:p-8 bg-neutral-900 border-neutral-800">
