@@ -83,7 +83,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ canvasRef }) => {
             onTouchStart={startDrawing}
             onTouchEnd={stopDrawing}
             onTouchMove={draw}
-            className="w-full h-full"
+            className="w-full h-full touch-none"
         />
     );
 };

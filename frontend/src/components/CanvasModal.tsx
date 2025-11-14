@@ -41,7 +41,23 @@ export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRec
             return;
         }
 
-        canvas.toBlob(async (blob) => {
+        // Create a temp canvas with white background
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = canvas.width;
+        exportCanvas.height = canvas.height;
+
+        const ctx = exportCanvas.getContext('2d');
+        if (!ctx) return;
+
+        // fill white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+        // draw the real canvas on top
+        ctx.drawImage(canvas, 0, 0);
+
+
+        exportCanvas.toBlob(async (blob) => {
             if (!blob) return;
 
             setIsUploading(true);
@@ -51,7 +67,7 @@ export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRec
                 // Use the API service function
                 const result = await postCanvasImage(blob);
 
-                const text = result.recognizedText || result.FileName;
+                const text = result.word;
                 onRecognize(text);
                 toast.success(`Set field to: ${text}`, { id: toastId });
                 onClose();
