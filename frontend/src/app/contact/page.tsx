@@ -28,43 +28,58 @@ export default function ContactPage() {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-5xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-6xl">
                 <div className="space-y-8">
-                    <h2 className="text-2xl font-bold text-white">Contact Information</h2>
-                    <div className="space-y-6">
-                        <div className="flex items-start space-x-4">
-                            <MapPin className="w-6 h-6 text-green-500 mt-1" />
-                            <div>
-                                <h3 className="text-lg font-semibold text-white">Our Office</h3>
-                                <p className="text-neutral-400">
-                                    Lekhsewa HQ, IT Park<br />
-                                    Kavrepalanchok, Banepa, Nepal
-                                </p>
+                    <div className="p-8 rounded-2xl border border-neutral-800 bg-neutral-900">
+                        <h2 className="text-2xl font-bold text-white mb-6">Contact Information</h2>
+                        <div className="space-y-6">
+                            <div className="flex items-start space-x-4">
+                                <MapPin className="w-6 h-6 text-green-500 mt-1 flex-shrink-0" />
+                                <div>
+                                    <h3 className="text-lg font-semibold text-white">Our Office</h3>
+                                    <p className="text-neutral-400">
+                                        Virinchi College, Kumaripati<br />
+                                        Lalitpur, Nepal
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <Mail className="w-6 h-6 text-blue-500" />
-                            <div>
-                                <h3 className="text-lg font-semibold text-white">Email Us</h3>
-                                <p className="text-neutral-400">support@lekhsewa.com.np</p>
+                            <div className="flex items-start space-x-4">
+                                <Mail className="w-6 h-6 text-green-500 mt-1 flex-shrink-0" />
+                                <div>
+                                    <h3 className="text-lg font-semibold text-white">Email Us</h3>
+                                    <p className="text-neutral-400">support@lekhsewa.com.np</p>
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <Phone className="w-6 h-6 text-purple-500" />
-                            <div>
-                                <h3 className="text-lg font-semibold text-white">Call Us</h3>
-                                <p className="text-neutral-400">+977 9800000000</p>
+                            <div className="flex items-start space-x-4">
+                                <Phone className="w-6 h-6 text-green-500 mt-1 flex-shrink-0" />
+                                <div>
+                                    <h3 className="text-lg font-semibold text-white">Call Us</h3>
+                                    <p className="text-neutral-400">+977 9703001706</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="w-full h-64 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-500">
-                        [ Map of IT Park, Kavre ]
+                    <div className="p-8 rounded-2xl border border-neutral-800 bg-neutral-900">
+                        <h2 className="text-2xl font-bold text-white mb-6 text-center">Our Location</h2>
+                        <div className="w-full h-80 rounded-xl overflow-hidden border border-neutral-700">
+                            <iframe
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d56525.4073216181!2d85.2799972!3d27.69140275!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb19cb05097d61%3A0x66d083a187176a11!2sVIRINCHI%20COLLEGE!5e0!3m2!1sen!2snp!4v1763142939641!5m2!1sen!2snp"
+                                width="100%"
+                                height="100%"
+                                style={{ border: 0 }}
+                                allowFullScreen={false}
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
+                                title="Virinchi College Location"
+                            ></iframe>
+                        </div>
                     </div>
                 </div>
 
-                <div className="p-8 rounded-2xl border border-neutral-800 bg-neutral-900">
+                <div className="p-8 rounded-2xl border border-neutral-800 bg-neutral-900 h-fit">
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        <h2 className="text-2xl font-bold text-white">Send us a Message</h2>
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-neutral-300 mb-2">
                                 Full Name
