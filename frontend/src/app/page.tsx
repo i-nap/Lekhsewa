@@ -35,47 +35,62 @@ export default function Home() {
 
   // --- API and Clear Logic ---
   const handleDoneClick = async () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const canvas = canvasRef.current;
+  if (!canvas) return;
 
-    // 1. ADDED: Check if canvas is empty
-    if (isCanvasEmpty(canvas)) {
-      toast.error("Canvas is empty. Please draw something.");
-      return;
+  if (isCanvasEmpty(canvas)) {
+    toast.error("Canvas is empty. Please draw something.");
+    return;
+  }
+
+  // Create a temp canvas with white background
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = canvas.width;
+  exportCanvas.height = canvas.height;
+
+  const ctx = exportCanvas.getContext('2d');
+  if (!ctx) return;
+
+  // fill white background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+  // draw the real canvas on top
+  ctx.drawImage(canvas, 0, 0);
+
+  exportCanvas.toBlob(async (blob) => {
+    if (!blob) return;
+
+    const formData = new FormData();
+    formData.append('file', blob, 'canvas-image.png'); // use png, see below
+
+    setIsUploading(true);
+    setRecognizedText('');
+    const toastId = toast.loading('Recognizing character...');
+
+    try {
+      const response = await fetch('https://lekhsewa.onrender.com/api/sendcanvasimage', {
+        method: 'POST',
+        body: formData,
+      });
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.error || 'Something went wrong');
+
+      const text = result.word || result.FileName;
+      setStatusMessage(`Success! Predicted character: ${text}`);
+      setRecognizedText(text);
+      console.log('API Response:', result);
+      toast.success(`Recognized: ${text}`, { id: toastId });
+    } catch (error) {
+      setStatusMessage(`Error: ${(error as Error).message}`);
+      toast.error((error as Error).message, { id: toastId });
+    } finally {
+      setIsUploading(false);
     }
+  }, 'image/png'); // <-- use PNG here
+};
 
-    canvas.toBlob(async (blob) => {
-      if (!blob) return;
-      const formData = new FormData();
-      formData.append('file', blob, 'canvas-image.png');
-
-      setIsUploading(true);
-      setRecognizedText('');
-      const toastId = toast.loading('Recognizing character...');
-      try {
-        const response = await fetch('https://lekhsewa.onrender.com/api/sendcanvasimage', {
-          method: 'POST',
-          body: formData,
-        });
-        const result = await response.json();
-        console.log(result);
-        if (!response.ok) throw new Error(result.error);
-
-        const text = result.recognizedText || result.FileName; // Fallback just in case
-        // setStatusMessage(`Success! Predicted character: ${result.recognizedText}`);
-        // setRecognizedText(result.FileName);
-        // toast.success(`Recognized: ${result.recognizedText}`, { id: toastId });
-        setStatusMessage(`Success! Predicted character: ${text}`);
-        setRecognizedText(text);
-        toast.success(`Recognized: ${text}`, { id: toastId });
-      } catch (error) {
-        setStatusMessage(`Error: ${(error as Error).message}`);
-        toast.error((error as Error).message, { id: toastId });
-      } finally {
-        setIsUploading(false);
-      }
-    }, 'image/png');
-  };
 
   const handleClearClick = () => {
     const canvas = canvasRef.current;

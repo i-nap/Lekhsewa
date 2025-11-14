@@ -26,10 +26,10 @@ public class CanvasImageController {
     public ResponseEntity<?> sendCanvasImage(@RequestParam("file") MultipartFile file) {
         try {
             String uniqueFileName = service.saveImageWaitAndReturnResponse(file);
-//            Map<String, String> response = service.sendFileNameForTranscribe(uniqueFileName); //django bhaye si halna lahi
-//            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            Map<String, String> response = service.sendFileForTranscribe(uniqueFileName); //django bhaye si halna lahi
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("FileName", uniqueFileName)); //testing lahi matra
+//            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("FileName", uniqueFileName)); //testing lahi matra
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

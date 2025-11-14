@@ -17,9 +17,10 @@ export default function Auth0ClientProvider({ children }: { children: ReactNode 
             authorizationParams={{
                 redirect_uri: redirectUri,
             }}
+            cacheLocation="localstorage"
+            useRefreshTokens={true}
         >
             {children}
         </Auth0Provider>
-
     );
 }
