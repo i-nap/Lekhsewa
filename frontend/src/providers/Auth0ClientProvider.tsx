@@ -33,6 +33,7 @@ export default function Auth0ClientProvider({ children }: { children: ReactNode 
       cacheLocation="localstorage"
       // Stop landing on callback limbo after login:
       onRedirectCallback={(appState) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const target = (appState && (appState as any).returnTo) || '/';
         router.replace(target);
       }}

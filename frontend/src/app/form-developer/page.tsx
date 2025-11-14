@@ -50,7 +50,7 @@ export default function FormDeveloperSearchPage() {
             fetch(`https://lekhsewa.onrender.com/api/suggest?q=${debouncedQuery}&limit=8`)
                 .then(res => res.json())
                 .then(data => setSuggestions(data.content || []))
-                .catch(err => toast.error("Could not load suggestions"))
+                .catch(() => toast.error("Could not load suggestions"))
                 .finally(() => setIsSuggestLoading(false));
         } else {
             setSuggestions([]);

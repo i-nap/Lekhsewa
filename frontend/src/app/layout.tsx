@@ -6,7 +6,6 @@ import Auth0ClientProvider from "./providers/Auth0ClientProvider";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
-const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Lekhsewa - Nepali Canvas',

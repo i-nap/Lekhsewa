@@ -38,7 +38,7 @@ const getFieldSpan = (fieldName: string): string => {
 
 export default function FormDisplayPage() {
     const params = useParams();
-    const { isAuthenticated, isLoading: isAuthLoading, loginWithRedirect } = useAuth0();
+    const { isAuthenticated, isLoading: isAuthLoading } = useAuth0();
 
     const [formDetails, setFormDetails] = useState<FormDTO | null>(null);
     const [fields, setFields] = useState<FieldDTO[]>([]);
