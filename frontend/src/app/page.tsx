@@ -32,8 +32,22 @@ export default function Home() {
       toast.error("Canvas is empty. Please draw a character first.");
       return;
     }
+    // Create a temp canvas with white background
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = canvas.width;
+    exportCanvas.height = canvas.height;
 
-    canvas.toBlob(async (blob) => {
+    const ctx = exportCanvas.getContext('2d');
+    if (!ctx) return;
+
+    // fill white background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    // draw the real canvas on top
+    ctx.drawImage(canvas, 0, 0);
+
+    exportCanvas.toBlob(async (blob) => {
       if (!blob) return;
 
       setIsUploading(true);
@@ -43,7 +57,7 @@ export default function Home() {
       try {
         const result = await postCanvasImage(blob);
 
-        const text = result.recognizedText || result.FileName;
+        const text = result.word;
         setStatusMessage(`Success! Predicted character: ${text}`);
         setRecognizedText(text);
         toast.success(`Recognized: ${text}`, { id: toastId });
@@ -100,9 +114,10 @@ export default function Home() {
           <h1 className="text-3xl font-bold sm:text-4xl text-neutral-100">Nepali Character Canvas</h1>
           <p className="mt-2 text-md sm:text-lg text-neutral-400">Draw a single Nepali character in the box below.</p>
         </div>
-        <div className="w-full overflow-hidden border rounded-lg aspect-video bg-white border-neutral-800">
+        <div className="w-full overflow-hidden border rounded-lg aspect-video bg-white border-neutral-800 touch-none">
           <DrawingCanvas canvasRef={canvasRef} />
         </div>
+
         {recognizedText && (
           <div className="flex items-center p-4 space-x-4 bg-black border rounded-lg border-neutral-800">
             <span className="flex-1 text-4xl font-bold text-center text-green-400">{recognizedText}</span>

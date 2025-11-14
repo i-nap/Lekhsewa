@@ -62,19 +62,20 @@ export default function FormDisplayPage() {
         setFormData(prev => ({ ...prev, [fieldName]: value }));
         try {
             // --- Date Conversion Logic ---
-            if (fieldName === 'dob_bs') {
+            // yesari mildaina la jahile pani same field name hudaina
+            if (fieldName === 'dobLoc') {
                 // User typed in Nepali Date, convert to English (AD)
                 const adDate = new NepaliDate(value).toJsDate();
                 // Format to YYYY-MM-DD
                 const adString = adDate.toISOString().split('T')[0];
-                setFormData(prev => ({ ...prev, dob_bs: value, dob_ad: adString }));
+                setFormData(prev => ({ ...prev, dobLoc: value, dob: adString }));
 
-            } else if (fieldName === 'dob_ad') {
+            } else if (fieldName === 'dob') {
                 // User typed in English Date, convert to Nepali (BS)
                 const bsNepaliDate = new NepaliDate(new Date(value));
                 // Format to YYYY-MM-DD (NepaliDate months are 0-based)
                 const bsString = `${bsNepaliDate.getYear()}-${String(bsNepaliDate.getMonth() + 1).padStart(2, '0')}-${String(bsNepaliDate.getDate()).padStart(2, '0')}`;
-                setFormData(prev => ({ ...prev, dob_ad: value, dob_bs: bsString }));
+                setFormData(prev => ({ ...prev, dob: value, dobLoc: bsString }));
             }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
