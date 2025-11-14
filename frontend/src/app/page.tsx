@@ -6,22 +6,13 @@ import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { SpotifyButton } from '@/components/ui/SpotifyButton';
 import DrawingCanvas from '@/components/DrawingCanvas';
-import { postCanvasImage } from '@/api';
+import { postCanvasImage } from '@/api'; // <-- IMPORT FROM THE NEW FOLDER
 
 // Helper function to check if the canvas is empty
 function isCanvasEmpty(canvas: HTMLCanvasElement) {
   const context = canvas.getContext('2d');
   if (!context) return true;
-  // const pixelData = context.getImageData(0, 0, canvas.width, canvas.height).data;
-  // for (let i = 3; i < pixelData.length; i += 4) {
-  //   if (pixelData[i] > 0) {
-  //     return false; 
-  //   }
-  // }
-  // return true; 
-  const pixelBuffer = new Uint32Array(
-    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
-  );
+  const pixelBuffer = new Uint32Array(context.getImageData(0, 0, canvas.width, canvas.height).data.buffer);
   return !pixelBuffer.some(color => color !== 0);
 }
 
@@ -34,62 +25,37 @@ export default function Home() {
 
   // --- API and Clear Logic ---
   const handleDoneClick = async () => {
-  const canvas = canvasRef.current;
-  if (!canvas) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  if (isCanvasEmpty(canvas)) {
-    toast.error("Canvas is empty. Please draw something.");
-    return;
-  }
-
-  // Create a temp canvas with white background
-  const exportCanvas = document.createElement('canvas');
-  exportCanvas.width = canvas.width;
-  exportCanvas.height = canvas.height;
-
-  const ctx = exportCanvas.getContext('2d');
-  if (!ctx) return;
-
-  // fill white background
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-
-  // draw the real canvas on top
-  ctx.drawImage(canvas, 0, 0);
-
-  exportCanvas.toBlob(async (blob) => {
-    if (!blob) return;
-
-    const formData = new FormData();
-    formData.append('file', blob, 'canvas-image.png'); // use png, see below
-
-    setIsUploading(true);
-    setRecognizedText('');
-    const toastId = toast.loading('Recognizing character...');
-
-    try {
-      const response = await fetch('https://lekhsewa.onrender.com/api/sendcanvasimage', {
-        method: 'POST',
-        body: formData,
-      });
-      const result = await response.json();
-
-      if (!response.ok) throw new Error(result.error || 'Something went wrong');
-
-      const text = result.word || result.FileName;
-      setStatusMessage(`Success! Predicted character: ${text}`);
-      setRecognizedText(text);
-      console.log('API Response:', result);
-      toast.success(`Recognized: ${text}`, { id: toastId });
-    } catch (error) {
-      setStatusMessage(`Error: ${(error as Error).message}`);
-      toast.error((error as Error).message, { id: toastId });
-    } finally {
-      setIsUploading(false);
+    if (isCanvasEmpty(canvas)) {
+      toast.error("Canvas is empty. Please draw a character first.");
+      return;
     }
-  }, 'image/png'); // <-- use PNG here
-};
 
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      setIsUploading(true);
+      setRecognizedText('');
+      const toastId = toast.loading('Recognizing character...');
+
+      try {
+        const result = await postCanvasImage(blob);
+
+        const text = result.recognizedText || result.FileName;
+        setStatusMessage(`Success! Predicted character: ${text}`);
+        setRecognizedText(text);
+        toast.success(`Recognized: ${text}`, { id: toastId });
+
+      } catch (error) {
+        setStatusMessage(`Error: ${(error as Error).message}`);
+        toast.error((error as Error).message, { id: toastId });
+      } finally {
+        setIsUploading(false);
+      }
+    }, 'image/png');
+  };
 
   const handleClearClick = () => {
     const canvas = canvasRef.current;
@@ -98,7 +64,7 @@ export default function Home() {
     if (!context) return;
     context.clearRect(0, 0, canvas.width, canvas.height);
     setRecognizedText('');
-    setStatusMessage(''); 
+    setStatusMessage('');
   };
 
   const handleCopy = () => {
@@ -107,107 +73,57 @@ export default function Home() {
     toast.success('Copied to clipboard!');
   };
 
-  // Show a loading screen while Auth0 checks the session
+  // --- Auth Render Logic ---
   if (isLoading) {
-    return (
-      <main className="flex flex-col items-center justify-center min-h-screen p-4 pt-24 pb-24">
-        <p className="text-lg text-neutral-300">Loading Session...</p>
-      </main>
-    );
+    return <main className="flex items-center justify-center min-h-[80vh]"><p>Loading Session...</p></main>;
   }
-
-  // Show error message if Auth0 fails
   if (error) {
-    return (
-      <main className="flex flex-col items-center justify-center min-h-screen p-4 pt-24 pb-24">
-        <p className="text-lg text-red-500">Authentication Error: {error.message}</p>
-      </main>
-    );
+    return <main className="flex items-center justify-center min-h-[80vh]"><p>Authentication Error: {error.message}</p></main>;
   }
-
-  // If NOT authenticated, show a login prompt
   if (!isAuthenticated) {
     return (
-      <main className="flex flex-col items-center justify-center min-h-[80vh] p-4">
+      <main className="flex items-center justify-center min-h-[80vh]">
         <div className="text-center w-full max-w-lg p-8 bg-neutral-900 rounded-lg border border-neutral-800">
           <h1 className="text-3xl font-bold text-white">Welcome to Lekhsewa</h1>
-          <p className="text-lg text-neutral-400 mt-4 mb-8">Please log in or sign up to use the Nepali Character Canvas.</p>
-          <SpotifyButton onClick={() => loginWithRedirect()}>
-            Get Started
-          </SpotifyButton>
+          <p className="mt-4 mb-8 text-lg text-neutral-400">Please log in to use the Nepali Character Canvas.</p>
+          <SpotifyButton onClick={() => loginWithRedirect()}>Get Started</SpotifyButton>
         </div>
       </main>
     );
   }
 
-  // If authenticated, show your full application page
+  // --- Authenticated Render ---
   return (
     <main className="flex flex-col items-center min-h-screen p-4 pt-24 pb-24 space-y-8 sm:space-y-12">
-      <div className="w-full max-w-2xl rounded-2xl border border-neutral-800 bg-neutral-900 p-4 sm:p-8 space-y-6">
+      <div className="w-full max-w-2xl p-4 space-y-6 border rounded-2xl sm:p-8 bg-neutral-900 border-neutral-800">
         <div className="text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-neutral-100">
-            Nepali Character Canvas
-          </h1>
-          <p className="text-md sm:text-lg text-neutral-400 mt-2">
-            Draw a single Nepali character in the box below.
-          </p>
+          <h1 className="text-3xl font-bold sm:text-4xl text-neutral-100">Nepali Character Canvas</h1>
+          <p className="mt-2 text-md sm:text-lg text-neutral-400">Draw a single Nepali character in the box below.</p>
         </div>
-        <div className="w-full aspect-video rounded-lg bg-white border border-neutral-800 overflow-hidden">
+        <div className="w-full overflow-hidden border rounded-lg aspect-video bg-white border-neutral-800">
           <DrawingCanvas canvasRef={canvasRef} />
         </div>
         {recognizedText && (
-          <div className="flex items-center space-x-4 p-4 rounded-lg bg-black border border-neutral-800">
-            <span className="text-4xl font-bold text-green-400 flex-1 text-center">
-              {recognizedText}
-            </span>
-            <button
-              onClick={handleCopy}
-              className="p-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 transition-colors"
-              title="Copy to clipboard"
-            >
+          <div className="flex items-center p-4 space-x-4 bg-black border rounded-lg border-neutral-800">
+            <span className="flex-1 text-4xl font-bold text-center text-green-400">{recognizedText}</span>
+            <button onClick={handleCopy} className="p-3 transition-colors rounded-lg bg-neutral-800 hover:bg-neutral-700" title="Copy to clipboard">
               <Copy className="w-6 h-6 text-neutral-300" />
             </button>
           </div>
         )}
-
-        <div className="h-8 flex items-center justify-center">
+        <div className="flex items-center justify-center h-8">
           {!recognizedText && statusMessage && (
-            <p className={`text-base font-medium ${statusMessage.startsWith('Error') ? 'text-red-500' : 'text-green-500'}`}>
-              {statusMessage}
-            </p>
+            <p className={`text-base font-medium ${statusMessage.startsWith('Error') ? 'text-red-500' : 'text-green-500'}`}>{statusMessage}</p>
           )}
         </div>
-
         <div className="flex w-full justify-center space-x-4 pt-2">
-          <button
-            onClick={handleClearClick}
-            disabled={isUploading}
-            className="px-8 py-3 bg-neutral-800 text-neutral-300 font-semibold rounded-lg border border-neutral-700
-                                   hover:bg-neutral-700 hover:border-neutral-600
-                                   disabled:opacity-50 disabled:cursor-not-allowed
-                                   transition-colors duration-200"
-          >
-            Clear
-          </button>
-          <button
-            onClick={handleDoneClick}
-            disabled={isUploading}
-            className="px-8 py-3 bg-white text-neutral-900 font-bold rounded-lg
-                                   hover:bg-neutral-200
-                                   focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-opacity-75
-                                   disabled:opacity-50 disabled:cursor-not-allowed
-                                   transition-colors duration-200"
-          >
+          <button onClick={handleClearClick} disabled={isUploading} className="px-8 py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600 disabled:opacity-50">Clear</button>
+          <button onClick={handleDoneClick} disabled={isUploading} className="px-8 py-3 font-bold text-neutral-900 transition-colors bg-white rounded-lg hover:bg-neutral-200 disabled:opacity-50">
             {isUploading ? 'Processing...' : 'Recognize'}
           </button>
         </div>
       </div>
-
-      <footer className="mt-8 text-sm text-neutral-500">
-        <p>Developed for Lekhsewa Project &copy; 2025</p>
-      </footer>
-    </main >
+      <footer className="mt-8 text-sm text-neutral-500"><p>Developed for Lekhsewa Project &copy; 2025</p></footer>
+    </main>
   );
 }
-
-

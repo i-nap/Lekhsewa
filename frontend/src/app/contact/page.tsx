@@ -24,7 +24,7 @@ export default function ContactPage() {
                     Get in Touch
                 </h1>
                 <p className="text-xl text-neutral-400">
-                    Have questions about our enterprise solutions or need support? We're here to help.
+                    Have questions about our enterprise solutions or need support? We are here to help.
                 </p>
             </div>
 
