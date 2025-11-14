@@ -29,7 +29,7 @@ export function AppNavbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
-        <div className="sticky top-0 z-50 w-full">
+        <div className="sticky top-0 z-50 w-full bg-neutral-950/80 backdrop-blur-lg border-b border-neutral-800/50sticky top-0 z-50 w-full bg-neutral-950/80 backdrop-blur-lg border-b border-neutral-800/50">
             <Navbar>
                 {/* Desktop Navigation */}
                 <NavBody>
