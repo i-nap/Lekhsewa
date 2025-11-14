@@ -76,6 +76,7 @@ export default function FormDisplayPage() {
                 const bsString = `${bsNepaliDate.getYear()}-${String(bsNepaliDate.getMonth() + 1).padStart(2, '0')}-${String(bsNepaliDate.getDate()).padStart(2, '0')}`;
                 setFormData(prev => ({ ...prev, dob_ad: value, dob_bs: bsString }));
             }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             // If the date is invalid (e.g., "2081-02-33"), do nothing
             console.warn("Invalid date for conversion:", value);
