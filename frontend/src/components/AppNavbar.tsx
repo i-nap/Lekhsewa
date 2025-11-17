@@ -81,11 +81,12 @@ export function AppNavbar() {
                                     <DropdownMenu
                                         aria-label="User Actions"
                                         onAction={handleDropdownAction}
+                                        className="w-48 bg-neutral-900 border border-neutral-800 shadow-lg"
                                     >
                                         <DropdownItem
                                             key="profile"
                                             isReadOnly
-                                            className="h-14 gap-2 opacity-100 cursor-default focus:!bg-transparent"
+                                            className="h-14 gap-2 opacity-1000 cursor-default focus:!bg-transparent"
                                         >
                                             <div className="flex flex-col">
                                                 <p className="text-sm font-semibold text-neutral-200">{getFirstName()}</p>
