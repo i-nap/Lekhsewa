@@ -239,8 +239,8 @@ export default function FormDisplayPage() {
                                                                     : `Enter ${field.label}...`
                                                             }
                                                             className={`w-full p-4 border rounded-lg bg-black text-neutral-200 border-neutral-800 caret-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 ${field.nepali_text
-                                                                    ? "cursor-pointer hover:border-green-500/50"
-                                                                    : ""
+                                                                ? "cursor-pointer hover:border-green-500/50"
+                                                                : ""
                                                                 }`}
                                                             readOnly={field.nepali_text}
                                                             required={field.required}
