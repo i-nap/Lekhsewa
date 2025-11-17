@@ -28,3 +28,16 @@ export async function getFormById(id: string | number) {
     const response = await fetch(`${API_BASE_URL}/getformdata/${id}`);
     return handleResponse(response);
 }
+
+export async function upgradeUserPlan(token: string) { 
+    const response = await fetch(`${API_BASE_URL}/user/upgrade-plan`, {
+        method: 'POST',
+        headers: {
+            'Authorization' : `Bearer ${token}`,
+}
+    });
+    if (!response.ok) {
+        throw new Error('Failed to upgrade user plan');
+    }
+    return {success: true};
+}
