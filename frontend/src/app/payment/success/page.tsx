@@ -1,78 +1,93 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useAuth0 } from "@auth0/auth0-react";
-import { toast } from "sonner";
 
-export default function SuccessPage() {
+type Status = "loading" | "success" | "failed";
+
+export default function SuccessClient() {
   const params = useSearchParams();
   const router = useRouter();
-  const uuid = params.get("transaction_uuid");
-   const amount = params.get("amount"); 
 
-  const { user, isLoading, isAuthenticated } = useAuth0();
+  const [status, setStatus] = useState<Status>("loading");
+  const [message, setMessage] = useState("Verifying your payment…");
 
   useEffect(() => {
-    if (isLoading) return;
+    const run = async () => {
+      const data = params.get("data");
 
-    if (!uuid || !amount) {
-      console.error("Missing uuid or amount from eSewa", { uuid, amount });
-      toast.error("Missing payment details from eSewa.");
-      router.replace("/");
-      return;
-    }
+      if (!data) {
+        console.error("Missing data param from eSewa redirect:", params.toString());
+        setStatus("failed");
+        setMessage("Payment data missing. Unable to verify.");
+        return;
+      }
 
-    if (!isAuthenticated || !user) {
-      console.warn("User not authenticated on success page");
-      toast.error("You must be logged in for payment verification.");
-      router.replace("/");
-      return;
-    }
-
-    const sub = user.sub ?? "";
-
-    const verifyPayment = async () => {
       try {
-        const res = await fetch(
-          `/api/esewa/verify?uuid=${encodeURIComponent(
-            uuid
-          )}&amount=${encodeURIComponent(
-            amount
-          )}&userId=${encodeURIComponent(sub)}`
-        );
+        const res = await fetch(`/api/esewa/verify?data=${encodeURIComponent(data)}`);
+        const json = await res.json();
 
-               if (!res.ok) {
-          console.error("Verify API returned", res.status);
-          const txt = await res.text();
-          console.error("Verify error body:", txt);
-          toast.error("Payment verification failed. Try again.");
-          router.replace("/");
-          return;
+        if (!res.ok || !json) {
+          throw new Error("Verification request failed");
         }
 
-        const data = await res.json();
-        if (data.verified) {
-          toast.success("Payment verified ✅", {
-            description: "Your account has been upgraded.",
-          });
+        if (json.verified) {
+          setStatus("success");
+          setMessage("Payment successful! Your account has been upgraded.");
         } else {
-          toast.error("Payment could not be verified.");
+          setStatus("failed");
+          setMessage("Payment could not be verified. If money was deducted, contact support.");
         }
       } catch (err) {
-        console.error("Error calling /api/esewa/verify:", err);
-        toast.error("Error verifying payment. Try again.");
-      } finally {
-        router.replace("/");
+        console.error("Verification error:", err);
+        setStatus("failed");
+        setMessage("Something went wrong while verifying the payment.");
       }
     };
 
-    verifyPayment();
-  }, [uuid, amount, isLoading, isAuthenticated, user, router]);
+    run();
+  }, [params]);
 
   return (
-    <div className="text-white p-10 text-align-center">
-      Verifying your payment...
+    <div className="min-h-screen flex items-center justify-center bg-neutral-950 text-white px-4">
+      <div className="max-w-md w-full bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center shadow-lg">
+        {status === "loading" && (
+          <>
+            <div className="text-lg font-semibold mb-2">Processing Payment</div>
+            <p className="text-neutral-400">{message}</p>
+          </>
+        )}
+
+        {status === "success" && (
+          <>
+            <div className="text-4xl mb-4">✅</div>
+            <h1 className="text-xl font-semibold mb-2">Payment Successful</h1>
+            <p className="text-neutral-400 mb-6">{message}</p>
+
+            <button
+              onClick={() => router.push("/")}
+              className="w-full py-3 rounded-xl bg-green-600 hover:bg-green-700 transition font-medium"
+            >
+              Go to Home
+            </button>
+          </>
+        )}
+
+        {status === "failed" && (
+          <>
+            <div className="text-4xl mb-4">❌</div>
+            <h1 className="text-xl font-semibold mb-2">Payment Issue</h1>
+            <p className="text-neutral-400 mb-6">{message}</p>
+
+            <button
+              onClick={() => router.push("/")}
+              className="w-full py-3 rounded-xl bg-neutral-700 hover:bg-neutral-600 transition font-medium"
+            >
+              Go to Home
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }

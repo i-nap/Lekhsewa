@@ -1,4 +1,3 @@
-
 import crypto from "crypto";
 import { generateEsewaSignature } from "@/lib/esewa/signature";
 import { NextResponse } from "next/server";
@@ -8,12 +7,8 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
-
     if (!body) {
-      return NextResponse.json(
-        { error: "Invalid JSON body" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
     const { amount, productId } = body;
@@ -25,10 +20,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const merchantCode = process.env.ESEWA_MERCHANT_CODE;
-    const secretKey = process.env.ESEWA_SECRET_KEY;
-    const baseSuccessUrl = process.env.NEXT_PUBLIC_ESEWA_SUCCESS_URL;
-    const failureUrl = process.env.NEXT_PUBLIC_ESEWA_FAILURE_URL;
+    // Prefer server-only envs (keep NEXT_PUBLIC as fallback if you already set them)
+    const merchantCode =
+      process.env.ESEWA_MERCHANT_CODE || process.env.NEXT_PUBLIC_ESEWA_MERCHANT_CODE;
+    const secretKey =
+      process.env.ESEWA_SECRET_KEY || process.env.NEXT_PUBLIC_ESEWA_SECRET_KEY;
+
+    const baseSuccessUrl =
+      process.env.ESEWA_SUCCESS_URL || process.env.NEXT_PUBLIC_ESEWA_SUCCESS_URL;
+    const failureUrl =
+      process.env.ESEWA_FAILURE_URL || process.env.NEXT_PUBLIC_ESEWA_FAILURE_URL;
 
     if (!merchantCode || !secretKey || !baseSuccessUrl || !failureUrl) {
       console.error("Missing eSewa env vars", {
@@ -45,10 +46,12 @@ export async function POST(req: Request) {
 
     const transaction_uuid = crypto.randomUUID();
 
-    const success_url = `${baseSuccessUrl}?transaction_uuid=${transaction_uuid}`;
+    // ✅ IMPORTANT: keep success_url CLEAN.
+    // eSewa v2 appends `data=...` itself on success. :contentReference[oaicite:1]{index=1}
+    const success_url = baseSuccessUrl;
 
     const basePayload = {
-      amount: String(amount), 
+      amount: String(amount),
       tax_amount: "0",
       product_delivery_charge: "0",
       product_service_charge: "0",
@@ -61,11 +64,11 @@ export async function POST(req: Request) {
     };
 
     const signature = generateEsewaSignature(basePayload, secretKey);
+
     return NextResponse.json({
       payload: basePayload,
-      signature: signature,
+      signature,
     });
-
   } catch (err) {
     console.error("Error in /api/esewa/initiate:", err);
     return NextResponse.json(
