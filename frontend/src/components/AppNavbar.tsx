@@ -22,7 +22,7 @@ export function AppNavbar() {
     const navItems = [
         { name: "Home", link: "/", external: false },
         { name: "Form Developer", link: "/form-developer", external: false },
-        { name: "Services", link: "/services", external: false },
+        // { name: "Services", link: "/services", external: false },
         { name: "Pricing", link: "/pricing", external: false },
         { name: "Contact", link: "/contact", external: false },
     ];
@@ -51,12 +51,12 @@ export function AppNavbar() {
         <div className="sticky top-0 z-40 w-full bg-neutral-950/80 backdrop-blur-lg border-b border-neutral-800/50">
             <Navbar>
                 <NavBody>
-                    <Link href="/" className="flex items-center">
+                    <Link href="/" className="flex items-center bg-white rounded-md">
                         <Image
                             src="/logo.png" 
                             alt="Lekhsewa Logo"
-                            width={120}
-                            height={120}
+                            width={100}
+                            height={100}
                             className="object-contain" 
                             priority 
                         />
@@ -145,9 +145,16 @@ export function AppNavbar() {
                 {/* MOBILE NAVIGATION */}
                 <MobileNav>
                     <MobileNavHeader>
-                        <Link href="/" className="flex items-center">
-                            <span className="text-xl font-bold">Lekhsewa</span>
-                        </Link>
+                    <Link href="/" className="flex items-center bg-white rounded-md">
+                        <Image
+                            src="/logo.png" 
+                            alt="Lekhsewa Logo"
+                            width={80}
+                            height={80}
+                            className="object-contain" 
+                            priority 
+                        />
+                    </Link>
                         <MobileNavToggle
                             isOpen={isMobileMenuOpen}
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
