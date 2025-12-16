@@ -35,4 +35,7 @@ public class AppUser {
 
     @Column(name="plan", nullable = false)
     private String plan = "free";
+
+    @Column(name="quota", nullable = false)
+    private Integer quota = 0;
 }

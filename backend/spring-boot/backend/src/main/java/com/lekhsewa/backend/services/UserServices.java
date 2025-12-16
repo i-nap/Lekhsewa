@@ -20,4 +20,49 @@ public class UserServices {
         }
         return null;
     }
+
+    public String changePlantoPro(String sub) {
+        Optional<AppUser> userOpt = appUserRepository.findByAuth0Sub(sub);
+
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("User not found for sub: " + sub);
+        }
+
+        AppUser user = userOpt.get();
+        user.setPlan("paid");
+
+        appUserRepository.save(user);
+
+        return "Plan upgraded to PRO";
+    }
+
+    public Boolean isUserAbleToProcessMoreImage(String sub) {
+        System.out.println(sub);
+        Optional<AppUser> userOpt = appUserRepository.findByAuth0Sub(sub);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("User not found for sub: " + sub);
+        }
+
+        AppUser user = userOpt.get();
+        if (user.getPlan().equals("paid")) {
+            return true;
+        }
+        else if ( user.getPlan().equals("free") && user.getQuota() <= 5) {
+            user.setQuota(user.getQuota() + 1);
+            return true;
+        }
+        else {
+            return false;
+        }
+
+    }
+
+    public Integer lookupquota(String sub) {
+        Optional<AppUser> userOpt = appUserRepository.findByAuth0Sub(sub);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("User not found for sub: " + sub);
+        }
+        AppUser user = userOpt.get();
+        return user.getQuota();
+    }
 }

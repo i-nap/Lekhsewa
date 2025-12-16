@@ -14,8 +14,22 @@ public class UserController {
 
     @GetMapping(path = "/getuserplan")
     public ResponseEntity<String> getUserPlan (@RequestParam ("sub") String sub){
+        System.out.println("getUserPlan: "+sub);
         String planType = userServices.lookUpUserPlan(sub);
+        System.out.println(planType);
         return ResponseEntity.ok(planType);
+    }
+
+    @GetMapping(path = "/changeplantopro")
+    public ResponseEntity<String> changePlanToPro (@RequestParam ("sub") String sub){
+        String planType = userServices.changePlantoPro(sub);
+        return ResponseEntity.ok(planType);
+    }
+
+    @GetMapping(path = "/getuserquota")
+    public ResponseEntity<String> getUserQuota(@RequestParam ("sub") String sub){
+        Integer quota = userServices.lookupquota(sub);
+        return  ResponseEntity.ok(String.valueOf(quota));
     }
 
 }
