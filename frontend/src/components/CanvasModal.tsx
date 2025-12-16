@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 import DrawingCanvas from '@/components/DrawingCanvas';
 import { SpotifyButton } from './ui/SpotifyButton';
 import { toast } from 'sonner';
-import { postCanvasImage } from '@/api';
+import { postCanvasImage } from '@/app/api';
 
 interface CanvasModalProps {
     isOpen: boolean;

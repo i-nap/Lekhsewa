@@ -2,15 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CanvasModal } from "@/components/CanvasModal";
 import { SpotifyButton } from "@/components/ui/SpotifyButton";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { getFormById } from "@/api";
+import { getFormById } from "../../api";
 import NepaliDate from "nepali-date-converter";
 import { NepaliDateSelectField } from "@/components/NepaliDateSelectField";
+import Link from "next/link";
+import { Copy } from "lucide-react";
+
 
 // --- Type Definitions ---
 interface FieldOptionDTO {
@@ -47,7 +49,7 @@ export default function FormDisplayPage() {
         label: string;
     } | null>(null);
 
-    // Fetch form data
+
     useEffect(() => {
         const formId = params.formId as string;
         if (!formId) return;
@@ -63,7 +65,6 @@ export default function FormDisplayPage() {
             .finally(() => setIsFormLoading(false));
     }, [params.formId]);
 
-    // --- Input Handlers ---
     const handleInputClick = (field: FieldDTO) => {
         if (field.nepali_text) {
             setCurrentField({ field: field.field_name, label: field.label });
@@ -78,13 +79,10 @@ export default function FormDisplayPage() {
         }
     };
 
-    // "smart" handler for all field changes
     const handleFieldChange = (fieldName: string, value: string) => {
-        // always update the raw field first
         setFormData((prev) => ({ ...prev, [fieldName]: value }));
 
         try {
-            // --- BS → AD: dobLoc (Nepali date) updates dob (English date)
             if (fieldName === "dobLoc") {
                 const [bsY, bsM, bsD] = value.split("-").map(Number);
                 if (!bsY || !bsM || !bsD) return;
@@ -105,7 +103,6 @@ export default function FormDisplayPage() {
                 }));
             }
 
-            // --- AD → BS: dob (HTML date) updates dobLoc (Nepali date)
             if (fieldName === "dob") {
                 const [y, m, d] = value.split("-").map(Number);
                 if (!y || !m || !d) return;
@@ -177,18 +174,30 @@ export default function FormDisplayPage() {
                                                 key={field.id}
                                                 className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 items-center"
                                             >
-                                                {/* Column 1: Label */}
-                                                <label
-                                                    htmlFor={field.field_name}
-                                                    className="block text-sm font-medium text-neutral-200 md:text-right"
-                                                >
-                                                    {field.label}{" "}
-                                                    {field.required && (
-                                                        <span className="text-red-500">*</span>
-                                                    )}
-                                                </label>
+                                                <div className="flex items-center justify-between md:justify-end gap-2">
+                                                    <label
+                                                        htmlFor={field.field_name}
+                                                        className="block text-sm font-medium text-neutral-200 md:text-right"
+                                                    >
+                                                        {field.label}{" "}
+                                                        {field.required && <span className="text-red-500">*</span>}
+                                                    </label>
 
-                                                {/* Column 2: Input */}
+                                                    {/* Copy icon */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const value = formData[field.field_name] || "";
+                                                            if (!value) return toast.error("Nothing to copy");
+                                                            navigator.clipboard.writeText(value);
+                                                            toast.success(`Copied: ${field.label}`);
+                                                        }}
+                                                        className="p-1.5 rounded-md border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 transition"
+                                                    >
+                                                        <Copy className="w-3 h-3 text-neutral-300" />
+                                                    </button>
+                                                </div>
+
                                                 <div className="md:col-span-2">
                                                     {field.type === "select" ? (
                                                         <select

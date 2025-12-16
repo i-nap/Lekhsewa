@@ -1,6 +1,9 @@
-import { NextResponse } from "next/server";
+
 import crypto from "crypto";
 import { generateEsewaSignature } from "@/lib/esewa/signature";
+import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
@@ -24,11 +27,16 @@ export async function POST(req: Request) {
 
     const merchantCode = process.env.ESEWA_MERCHANT_CODE;
     const secretKey = process.env.ESEWA_SECRET_KEY;
-    const successUrl = process.env.NEXT_PUBLIC_ESEWA_SUCCESS_URL;
+    const baseSuccessUrl = process.env.NEXT_PUBLIC_ESEWA_SUCCESS_URL;
     const failureUrl = process.env.NEXT_PUBLIC_ESEWA_FAILURE_URL;
 
-    if (!merchantCode || !secretKey || !successUrl || !failureUrl) {
-      console.error("Missing eSewa env vars");
+    if (!merchantCode || !secretKey || !baseSuccessUrl || !failureUrl) {
+      console.error("Missing eSewa env vars", {
+        merchantCode,
+        secretKey: !!secretKey,
+        baseSuccessUrl,
+        failureUrl,
+      });
       return NextResponse.json(
         { error: "Server misconfigured: missing eSewa env vars" },
         { status: 500 }
@@ -37,31 +45,27 @@ export async function POST(req: Request) {
 
     const transaction_uuid = crypto.randomUUID();
 
+    const success_url = `${baseSuccessUrl}?transaction_uuid=${transaction_uuid}`;
+
     const basePayload = {
-      amount,
-      tax_amount: 0,
-      product_delivery_charge: 0,
-      product_service_charge: 0,
-      total_amount: amount,
+      amount: String(amount), 
+      tax_amount: "0",
+      product_delivery_charge: "0",
+      product_service_charge: "0",
+      total_amount: String(amount),
       transaction_uuid,
       product_code: merchantCode,
-      success_url: successUrl,
+      success_url,
       failure_url: failureUrl,
+      signed_field_names: "total_amount,transaction_uuid,product_code",
     };
 
     const signature = generateEsewaSignature(basePayload, secretKey);
-
-    const fields = {
-      ...basePayload,
-      signed_field_names: "total_amount,transaction_uuid,product_code",
-      signature,
-    };
-
-    // This MUST be valid JSON. No HTML, no text.
     return NextResponse.json({
-      formUrl: "https://rc-epay.esewa.com.np/api/epay/main/v2/form",
-      fields,
+      payload: basePayload,
+      signature: signature,
     });
+
   } catch (err) {
     console.error("Error in /api/esewa/initiate:", err);
     return NextResponse.json(
