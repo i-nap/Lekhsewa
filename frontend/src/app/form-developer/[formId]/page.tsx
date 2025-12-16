@@ -260,7 +260,7 @@ export default function FormDisplayPage() {
                                         ))}
                                     </div>
 
-                                    <div className="mt-8">
+                                    {/* <div className="mt-8">
                                         <SpotifyButton
                                             className="w-full py-4"
                                             onClick={(e) => {
@@ -270,7 +270,7 @@ export default function FormDisplayPage() {
                                         >
                                             Submit Application
                                         </SpotifyButton>
-                                    </div>
+                                    </div> */}
                                 </div>
                             )}
                         </div>

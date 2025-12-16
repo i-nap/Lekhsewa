@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth0 } from "@auth0/auth0-react";
 import { LogOut, ChevronDown } from "lucide-react";
+import { useUser } from "@/contexts/UserContext";
 import {
     Navbar,
     NavBody,
@@ -18,10 +19,12 @@ import { useState } from "react";
 export function AppNavbar() {
     const { loginWithRedirect, logout, user, isAuthenticated, isLoading } =
         useAuth0();
+    const { plan } = useUser();
+    const isPaidUser = plan && plan !== 'free';
 
     const navItems = [
         { name: "Home", link: "/", external: false },
-        { name: "Form Developer", link: "/form-developer", external: false },
+        ...(isPaidUser ? [{ name: "Form Developer", link: "/form-developer", external: false }] : []),
         // { name: "Services", link: "/services", external: false },
         { name: "Pricing", link: "/pricing", external: false },
         { name: "Contact", link: "/contact", external: false },
@@ -90,6 +93,15 @@ export function AppNavbar() {
                                     <span className="text-sm font-medium text-neutral-300 whitespace-nowrap max-w-[120px] truncate">
                                         {getFirstName()}
                                     </span>
+                                    {isPaidUser ? (
+                                        <span className="text-xs font-medium text-green-400 bg-green-900/30 px-2 py-1 rounded">
+                                            Pro
+                                        </span>
+                                    ) : plan === 'free' ? (
+                                        <span className="text-xs font-medium text-gray-400 bg-gray-800/30 px-2 py-1 rounded">
+                                            Free
+                                        </span>
+                                    ) : null}
 
                                     <ChevronDown
                                         className={`w-4 h-4 text-neutral-500 transition-transform ${isUserMenuOpen ? "rotate-180" : ""

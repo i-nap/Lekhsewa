@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Geist} from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { AppNavbar } from "@/components/AppNavbar";
 import Auth0ClientProvider from "./providers/Auth0ClientProvider";
+import { UserProvider } from "@/contexts/UserContext";
 import { Toaster } from "sonner";
 import DotPattern from "@/components/ui/dot-pattern";
 
@@ -24,19 +25,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <div className="relative z-0 min-h-screen">
           <Auth0ClientProvider>
-            <DotPattern
-              width={24}
-              height={24}
-              cx={1.5}
-              cy={1.5}
-              cr={1.5}
-              className="fixed inset-0 z-[0] fill-neutral-700/60 [mask-image:radial-gradient(ellipse_at_center,white,transparent_85%)]"
-            />
-            <div className="relative z-10">
-              <AppNavbar />
-              <main>{children}</main>
-            </div>
-            <Toaster position="top-center" theme="dark" richColors />
+            <UserProvider>
+              <DotPattern
+                width={24}
+                height={24}
+                cx={1.5}
+                cy={1.5}
+                cr={1.5}
+                className="fixed inset-0 z-[0] fill-neutral-700/60 [mask-image:radial-gradient(ellipse_at_center,white,transparent_85%)]"
+              />
+              <div className="relative z-10">
+                <AppNavbar />
+                <main>{children}</main>
+              </div>
+              <Toaster position="top-center" theme="dark" richColors />
+            </UserProvider>
           </Auth0ClientProvider>
         </div>
       </body>

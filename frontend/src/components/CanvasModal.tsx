@@ -5,6 +5,8 @@ import { SpotifyButton } from './ui/SpotifyButton';
 import { toast } from 'sonner';
 import { postCanvasImage } from '@/app/api';
 import { Undo } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
+import { useAuth0 } from '@auth0/auth0-react';
 
 interface CanvasModalProps {
     isOpen: boolean;
@@ -23,7 +25,7 @@ function isCanvasEmpty(canvas: HTMLCanvasElement) {
 export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRecognize, fieldName }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isUploading, setIsUploading] = useState(false);
-
+    const { user } = useAuth0();
     const [history, setHistory] = useState<ImageData[]>([]);
 
     if (!isOpen) return null;
@@ -89,8 +91,7 @@ export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRec
 
             try {
                 // Use the API service function
-                const result = await postCanvasImage(blob);
-
+                const result = await postCanvasImage(blob, user?.sub || '');
                 const text = result.word;
                 onRecognize(text);
                 toast.success(`Set field to: ${text}`, { id: toastId });

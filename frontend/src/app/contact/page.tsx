@@ -3,18 +3,37 @@ import React, { useState } from 'react';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { SpotifyButton } from '@/components/ui/SpotifyButton';
 import { toast } from 'sonner';
+import { sendContactMessage } from '@/app/api';
 
 export default function ContactPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        message: '',
+    });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { id, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [id]: value,
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        setTimeout(() => {
+
+        try {
+            await sendContactMessage(formData.name, formData.email, formData.message);
             toast.success("Message sent! We'll get back to you soon.");
+            setFormData({ name: '', email: '', message: '' });
+        } catch (error) {
+            toast.error((error as Error).message || 'Failed to send message');
+        } finally {
             setIsSubmitting(false);
-            (e.target as HTMLFormElement).reset();
-        }, 1500);
+        }
     };
 
     return (
@@ -87,6 +106,8 @@ export default function ContactPage() {
                             <input
                                 type="text"
                                 id="name"
+                                value={formData.name}
+                                onChange={handleChange}
                                 required
                                 className="w-full p-3 rounded-lg bg-black border border-neutral-800 text-white focus:ring-2 focus:ring-green-500 focus:outline-none"
                                 placeholder="Enter your name"
@@ -99,6 +120,8 @@ export default function ContactPage() {
                             <input
                                 type="email"
                                 id="email"
+                                value={formData.email}
+                                onChange={handleChange}
                                 required
                                 className="w-full p-3 rounded-lg bg-black border border-neutral-800 text-white focus:ring-2 focus:ring-green-500 focus:outline-none"
                                 placeholder="you@example.com"
@@ -111,6 +134,8 @@ export default function ContactPage() {
                             <textarea
                                 id="message"
                                 rows={5}
+                                value={formData.message}
+                                onChange={handleChange}
                                 required
                                 className="w-full p-3 rounded-lg bg-black border border-neutral-800 text-white focus:ring-2 focus:ring-green-500 focus:outline-none resize-none"
                                 placeholder="How can we help you?"

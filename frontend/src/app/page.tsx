@@ -1,12 +1,13 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Copy, Undo } from 'lucide-react';
 import { toast } from 'sonner';
 import { SpotifyButton } from '@/components/ui/SpotifyButton';
 import DrawingCanvas from '@/components/DrawingCanvas';
-import { postCanvasImage } from './api';
+import { postCanvasImage, getUserQuota } from './api';
+import { useUser } from '@/contexts/UserContext';
 
 // Helper function to check if the canvas is empty
 function isCanvasEmpty(canvas: HTMLCanvasElement) {
@@ -22,7 +23,32 @@ export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [recognizedText, setRecognizedText] = useState<string>('');
   const [history, setHistory] = useState<ImageData[]>([]);
+  const [quota, setQuota] = useState<number>(0);
+  const [loadingQuota, setLoadingQuota] = useState(false);
   const { isAuthenticated, isLoading, loginWithRedirect, error } = useAuth0();
+  const { sub, plan } = useUser();
+  const isFreeUser = plan === 'free';
+
+  // Fetch quota when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && sub) {
+      fetchQuota();
+    }
+  }, [isAuthenticated, sub]);
+
+  const fetchQuota = async () => {
+    if (!sub) return;
+    try {
+      setLoadingQuota(true);
+      const quotaValue = await getUserQuota(sub);
+      setQuota(quotaValue);
+    } catch (error) {
+      console.error('Error fetching quota:', error);
+      toast.error('Failed to load quota');
+    } finally {
+      setLoadingQuota(false);
+    }
+  };
 
   // --- API and Clear Logic ---
   const handleDoneClick = async () => {
@@ -56,12 +82,14 @@ export default function Home() {
       const toastId = toast.loading('Recognizing character...');
 
       try {
-        const result = await postCanvasImage(blob);
+        const result = await postCanvasImage(blob, sub || '');
 
         const text = result.word;
         setStatusMessage(`Success! Predicted character: ${text}`);
         setRecognizedText(text);
         toast.success(`Recognized: ${text}`, { id: toastId });
+        // Refresh quota after recognition
+        await fetchQuota();
 
       } catch (error) {
         setStatusMessage(`Error: ${(error as Error).message}`);
@@ -137,6 +165,16 @@ export default function Home() {
   // --- Authenticated Render ---
   return (
     <main className="flex flex-col items-center min-h-screen p-4 pt-24 pb-24 space-y-8 sm:space-y-12">
+      {/* Quota Display - Only for Free Users */}
+      {isAuthenticated && isFreeUser && (
+        <div className="w-full max-w-2xl">
+          <div className="p-4 text-center bg-neutral-900 border border-neutral-800 rounded-lg">
+            <p className="text-sm text-neutral-400">Daily Quota</p>
+            <p className="text-2xl font-bold text-green-400">{loadingQuota ? '...' : `${quota}/6`}</p>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-2xl p-4 space-y-6 border rounded-2xl sm:p-8 bg-neutral-900 border-neutral-800">
         <div className="text-center">
           <h1 className="text-3xl font-bold sm:text-4xl text-neutral-100">Nepali Character Canvas</h1>
@@ -160,13 +198,13 @@ export default function Home() {
           )}
         </div>
         <div className="flex w-full justify-center space-x-4 pt-2 px-5">
-          <button 
-             onClick={handleUndo} 
-             disabled={isUploading || history.length === 0} 
-             className="px-4 py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600 disabled:opacity-50"
-             title="Undo last stroke"
+          <button
+            onClick={handleUndo}
+            disabled={isUploading || history.length === 0}
+            className="px-4 py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600 disabled:opacity-50"
+            title="Undo last stroke"
           >
-             <Undo className="w-5 h-5" />
+            <Undo className="w-5 h-5" />
           </button>
           <button onClick={handleClearClick} disabled={isUploading} className="px-8 py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600 disabled:opacity-50">Clear</button>
           <button onClick={handleDoneClick} disabled={isUploading} className="px-8 py-3 font-bold text-neutral-900 transition-colors bg-white rounded-lg hover:bg-neutral-200 disabled:opacity-50">
