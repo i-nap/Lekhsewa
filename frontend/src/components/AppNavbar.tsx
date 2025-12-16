@@ -56,7 +56,7 @@ export function AppNavbar() {
                 <NavBody>
                     <Link href="/" className="flex items-center bg-white rounded-md">
                         <Image
-                            src="/logo.png" 
+                            src="/Logo.png" 
                             alt="Lekhsewa Logo"
                             width={100}
                             height={100}
