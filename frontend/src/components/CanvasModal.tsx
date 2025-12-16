@@ -4,6 +4,7 @@ import DrawingCanvas from '@/components/DrawingCanvas';
 import { SpotifyButton } from './ui/SpotifyButton';
 import { toast } from 'sonner';
 import { postCanvasImage } from '@/app/api';
+import { Undo } from 'lucide-react';
 
 interface CanvasModalProps {
     isOpen: boolean;
@@ -23,6 +24,8 @@ export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRec
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isUploading, setIsUploading] = useState(false);
 
+    const [history, setHistory] = useState<ImageData[]>([]);
+
     if (!isOpen) return null;
 
     const handleClearClick = () => {
@@ -30,6 +33,27 @@ export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRec
         if (!canvas) return;
         const context = canvas.getContext('2d');
         context?.clearRect(0, 0, canvas.width, canvas.height);
+        setHistory([]);
+    };
+
+    const handleStrokeStart = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const context = canvas.getContext('2d');
+        if (!context) return;
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        setHistory((prev) => [...prev, imageData]);
+    };
+
+    const handleUndo = () => {
+        if (history.length === 0) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const context = canvas.getContext('2d');
+        if (!context) return;
+        const previousState = history[history.length - 1];
+        context.putImageData(previousState, 0, 0);
+        setHistory((prev) => prev.slice(0, -1));
     };
 
     const handleRecognizeClick = async () => {
@@ -85,9 +109,16 @@ export const CanvasModal: React.FC<CanvasModalProps> = ({ isOpen, onClose, onRec
                 <button onClick={onClose} className="absolute w-8 h-8 font-bold text-black bg-white rounded-full -top-3 -right-3 text-lg">&times;</button>
                 <h2 className="text-2xl font-bold text-center text-white">Draw for field: <span className="text-[#1ED760]">{fieldName}</span></h2>
                 <div className="w-full overflow-hidden border rounded-lg aspect-video bg-white border-neutral-800">
-                    <DrawingCanvas canvasRef={canvasRef} />
+                    <DrawingCanvas canvasRef={canvasRef} onStrokeStart={handleStrokeStart} />
                 </div>
                 <div className="flex w-full space-x-4">
+                    <button
+                        onClick={handleUndo}
+                        disabled={isUploading || history.length === 0}
+                        className="px-4 py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 disabled:opacity-50"
+                    >
+                        <Undo className="w-5 h-5" />
+                    </button>
                     <button onClick={handleClearClick} disabled={isUploading} className="flex-1 px-6 py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 disabled:opacity-50">Clear</button>
                     <SpotifyButton onClick={handleRecognizeClick} disabled={isUploading} className="flex-1 py-3">{isUploading ? 'Recognizing...' : 'Recognize'}</SpotifyButton>
                 </div>

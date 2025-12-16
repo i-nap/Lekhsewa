@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { Copy } from 'lucide-react';
+import { Copy, Undo } from 'lucide-react';
 import { toast } from 'sonner';
 import { SpotifyButton } from '@/components/ui/SpotifyButton';
 import DrawingCanvas from '@/components/DrawingCanvas';
@@ -21,6 +21,7 @@ export default function Home() {
   const [statusMessage, setStatusMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [recognizedText, setRecognizedText] = useState<string>('');
+  const [history, setHistory] = useState<ImageData[]>([]);
   const { isAuthenticated, isLoading, loginWithRedirect, error } = useAuth0();
 
   // --- API and Clear Logic ---
@@ -87,6 +88,33 @@ export default function Home() {
     toast.success('Copied to clipboard!');
   };
 
+  const handleStrokeStart = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    // Capture current state before new stroke
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    setHistory((prev) => [...prev, imageData]);
+  };
+
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    // Get the last saved state
+    const previousState = history[history.length - 1];
+
+    // Restore it
+    context.putImageData(previousState, 0, 0);
+
+    // Remove it from stack
+    setHistory((prev) => prev.slice(0, -1));
+  };
+
   // --- Auth Render Logic ---
   if (isLoading) {
     return <main className="flex items-center justify-center min-h-[80vh]"><p>Loading Session...</p></main>;
@@ -115,7 +143,7 @@ export default function Home() {
           <p className="mt-2 text-md sm:text-lg text-neutral-400">Draw a single Nepali character in the box below.</p>
         </div>
         <div className="w-full overflow-hidden border rounded-lg aspect-video bg-white border-neutral-800 touch-none">
-          <DrawingCanvas canvasRef={canvasRef} />
+          <DrawingCanvas canvasRef={canvasRef} onStrokeStart={handleStrokeStart} />
         </div>
 
         {recognizedText && (
@@ -131,7 +159,15 @@ export default function Home() {
             <p className={`text-base font-medium ${statusMessage.startsWith('Error') ? 'text-red-500' : 'text-green-500'}`}>{statusMessage}</p>
           )}
         </div>
-        <div className="flex w-full justify-center space-x-4 pt-2">
+        <div className="flex w-full justify-center space-x-4 pt-2 px-5">
+          <button 
+             onClick={handleUndo} 
+             disabled={isUploading || history.length === 0} 
+             className="px-4 py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600 disabled:opacity-50"
+             title="Undo last stroke"
+          >
+             <Undo className="w-5 h-5" />
+          </button>
           <button onClick={handleClearClick} disabled={isUploading} className="px-8 py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600 disabled:opacity-50">Clear</button>
           <button onClick={handleDoneClick} disabled={isUploading} className="px-8 py-3 font-bold text-neutral-900 transition-colors bg-white rounded-lg hover:bg-neutral-200 disabled:opacity-50">
             {isUploading ? 'Processing...' : 'Recognize'}
