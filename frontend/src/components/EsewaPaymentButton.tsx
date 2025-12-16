@@ -76,7 +76,7 @@ export function EsewaPayButton({ amount, productId }: EsewaPayButtonProps) {
         <SpotifyButton
             onClick={handleClick}
             disabled={loading}
-            className="w-full py-3 !bg-neutral-800 !text-white hover:!bg-neutral-700"
+            className="w-full py-3 !bg-neutral-800 !text-white hover:!bg-green-700"
         >
             {loading ? "Redirecting..." : "Upgrade to Pro"}
         </SpotifyButton>

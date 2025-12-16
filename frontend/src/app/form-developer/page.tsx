@@ -1,20 +1,19 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useRouter } from 'next/navigation'; // 1. Import the router
+import { useRouter } from 'next/navigation'; 
 import { SpotifyButton } from "@/components/ui/SpotifyButton";
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
-import { getFormSuggestions } from "@/api";
+import { getFormSuggestions } from "../api";
 
-// --- Type Definitions ---
 interface FormSummary {
     id: number;
     name: string;
     description: string;
 }
 
-// --- Debounce Hook for Search ---
+
 const useDebounce = (value: string, delay: number) => {
     const [debouncedValue, setDebouncedValue] = useState(value);
     useEffect(() => {
@@ -46,7 +45,6 @@ export default function FormDeveloperSearchPage() {
     useEffect(() => {
         if (debouncedQuery.trim()) {
             setIsSuggestLoading(true);
-            // Use the API service function
             getFormSuggestions(debouncedQuery)
                 .then(data => setSuggestions(data.content || []))
                 .catch(() => toast.error("Could not load suggestions"))

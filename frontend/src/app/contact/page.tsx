@@ -38,8 +38,8 @@ export default function ContactPage() {
                                 <div>
                                     <h3 className="text-lg font-semibold text-white">Our Office</h3>
                                     <p className="text-neutral-400">
-                                        Virinchi College, Kumaripati<br />
-                                        Lalitpur, Nepal
+                                        Lekhsewa Nepal, Basantapur<br />
+                                        Kathmandu, Nepal
                                     </p>
                                 </div>
                             </div>

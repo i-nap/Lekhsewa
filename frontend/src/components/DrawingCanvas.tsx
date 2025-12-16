@@ -4,9 +4,10 @@ import React, { useRef, useEffect, useState } from 'react';
 
 interface DrawingCanvasProps {
     canvasRef: React.RefObject<HTMLCanvasElement | null>;
+    onStrokeStart?: () => void;
 }
 
-const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ canvasRef }) => {
+const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ canvasRef, onStrokeStart }) => {
     const [isDrawing, setIsDrawing] = useState(false);
     const contextRef = useRef<CanvasRenderingContext2D | null>(null);
 
@@ -18,8 +19,9 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ canvasRef }) => {
         if (!context) return;
         contextRef.current = context;
 
-     
+
         const handleResize = () => {
+            if (!context) return;
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             canvas.width = canvas.clientWidth;
             canvas.height = canvas.clientHeight;
@@ -54,6 +56,12 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ canvasRef }) => {
 
     const startDrawing = (event: React.MouseEvent | React.TouchEvent) => {
         if (!contextRef.current) return;
+
+        // <--- ADDED: Notify parent to save history before new stroke
+        if (onStrokeStart) {
+            onStrokeStart();
+        }
+
         const { offsetX, offsetY } = getCoordinates(event.nativeEvent);
         contextRef.current.beginPath();
         contextRef.current.moveTo(offsetX, offsetY);

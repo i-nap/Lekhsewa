@@ -6,7 +6,7 @@ import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { SpotifyButton } from '@/components/ui/SpotifyButton';
 import DrawingCanvas from '@/components/DrawingCanvas';
-import { postCanvasImage } from '@/api'; // <-- IMPORT FROM THE NEW FOLDER
+import { postCanvasImage } from './api';
 
 // Helper function to check if the canvas is empty
 function isCanvasEmpty(canvas: HTMLCanvasElement) {

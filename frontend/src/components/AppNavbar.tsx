@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth0 } from "@auth0/auth0-react";
 import { LogOut, ChevronDown } from "lucide-react";
@@ -52,7 +52,14 @@ export function AppNavbar() {
             <Navbar>
                 <NavBody>
                     <Link href="/" className="flex items-center">
-                        <span className="text-xl font-bold">Lekhsewa</span>
+                        <Image
+                            src="/logo.png" 
+                            alt="Lekhsewa Logo"
+                            width={120}
+                            height={120}
+                            className="object-contain" 
+                            priority 
+                        />
                     </Link>
                     <NavItems items={navItems} />
                     <div className="relative flex items-center gap-4">
