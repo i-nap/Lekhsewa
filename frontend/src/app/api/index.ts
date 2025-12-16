@@ -1,5 +1,5 @@
-// const API_BASE_URL = "https://lekhsewa.onrender.com/api";
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = "https://lekhsewa.onrender.com/api";
+// const API_BASE_URL = "http://localhost:8080/api";
 
 async function handleResponse(response: Response) {
   if (!response.ok) {
