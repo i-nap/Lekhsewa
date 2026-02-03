@@ -13,6 +13,23 @@ async function handleResponse(response: Response) {
   return response.json();
 }
 
+
+export async function getAllMessages(){
+  const url = `${API_BASE_URL}/message/getAll`;
+  console.log("Fetching messages from URL:", url);
+  try {
+    const response = await fetch(url);
+    if (response.status === 404) {
+      console.error("Endpoint not found! Check if /messages/getAll is correct on Render.");
+      return [];
+    }
+    return await handleResponse(response);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    return [];
+  }
+}
+
 export async function getUserPlan(sub: string) {
   const response = await fetch(
     `${API_BASE_URL}/getuserplan?sub=${encodeURIComponent(sub)}`,
