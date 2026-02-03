@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppNavbar } from "@/components/AppNavbar";
 import Auth0ClientProvider from "./providers/Auth0ClientProvider";
@@ -7,7 +7,7 @@ import { UserProvider } from "@/contexts/UserContext";
 import { Toaster } from "sonner";
 import DotPattern from "@/components/ui/dot-pattern";
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
+const inter = Inter({ variable: '--font-inter', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Lekhsewa - Nepali Canvas',
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark scroll-smooth">
       <body
-        className={`${geistSans.variable} antialiased 
+        className={`${inter.variable} antialiased 
                    text-neutral-300     
                    bg-neutral-950         
                    selection:bg-black-500/30`}

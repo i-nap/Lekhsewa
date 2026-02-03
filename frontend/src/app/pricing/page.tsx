@@ -18,8 +18,7 @@ export default function PricingPage() {
             price: "FREE",
             description: "Perfect for students and casual users trying out the service.",
             features: [
-                "Unlimited single character recognition",
-                "Access to basic government forms",
+                "6 quota limit per day",
                 "Standard processing speed",
                 "Community support",
             ],
@@ -29,21 +28,21 @@ export default function PricingPage() {
         },
         {
             name: "Pro User",
-            price: "NPR 499",
+            price: "NPR 200",
             period: "/month",
             description: "For professionals who need frequent and fast transcription.",
             features: [
                 "Everything in Free Tier",
-                "Full-word & sentence recognition (Beta)",
+                "Full-word & sentence recognition",
                 "Priority processing speed",
-                "Save & export form data as PDF",
-                "Email support",
+                "Form Developer support",
+                "Unlimited Quota"
             ],
             cta: "Upgrade to Pro",
             highlighted: true,
             isFree: false,
             isEnterprise: false,
-            amount: 499,
+            amount: 200,
         },
         {
             name: "Enterprise",

@@ -159,7 +159,7 @@ export function AppNavbar() {
                     <MobileNavHeader>
                     <Link href="/" className="flex items-center bg-white rounded-md">
                         <Image
-                            src="/logo.png" 
+                            src="/Logo.png" 
                             alt="Lekhsewa Logo"
                             width={80}
                             height={80}

@@ -164,7 +164,7 @@ export default function Home() {
 
   // --- Authenticated Render ---
   return (
-    <main className="flex flex-col items-center min-h-screen p-4 pt-24 pb-24 space-y-8 sm:space-y-12">
+    <main className="flex flex-col items-center min-h-screen p-4 pt-24 pb-24 space-y-8 sm:space-y-4">
       {/* Quota Display - Only for Free Users */}
       {isAuthenticated && isFreeUser && (
         <div className="w-full max-w-2xl">
@@ -178,7 +178,7 @@ export default function Home() {
       <div className="w-full max-w-2xl p-4 space-y-6 border rounded-2xl sm:p-8 bg-neutral-900 border-neutral-800">
         <div className="text-center">
           <h1 className="text-3xl font-bold sm:text-4xl text-neutral-100">Nepali Character Canvas</h1>
-          <p className="mt-2 text-md sm:text-lg text-neutral-400">Draw a single Nepali character in the box below.</p>
+          <p className="mt-2 text-md sm:text-lg text-neutral-400">Draw a Nepali character in the box below.</p>
         </div>
         <div className="w-full overflow-hidden border rounded-lg aspect-video bg-white border-neutral-800 touch-none">
           <DrawingCanvas canvasRef={canvasRef} onStrokeStart={handleStrokeStart} />
@@ -197,17 +197,19 @@ export default function Home() {
             <p className={`text-base font-medium ${statusMessage.startsWith('Error') ? 'text-red-500' : 'text-green-500'}`}>{statusMessage}</p>
           )}
         </div>
-        <div className="flex w-full justify-center space-x-4 pt-2 px-5">
-          <button
-            onClick={handleUndo}
-            disabled={isUploading || history.length === 0}
-            className="px-4 py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600 disabled:opacity-50"
-            title="Undo last stroke"
-          >
-            <Undo className="w-5 h-5" />
-          </button>
-          <button onClick={handleClearClick} disabled={isUploading} className="px-8 py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600 disabled:opacity-50">Clear</button>
-          <button onClick={handleDoneClick} disabled={isUploading} className="px-8 py-3 font-bold text-neutral-900 transition-colors bg-white rounded-lg hover:bg-neutral-200 disabled:opacity-50">
+        <div className="flex flex-col gap-2 w-full pt-2">
+          <div className="flex gap-2 sm:gap-4 justify-center">
+            <button
+              onClick={handleUndo}
+              disabled={isUploading || history.length === 0}
+              className="px-3 sm:px-4 py-2 sm:py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600 disabled:opacity-50 flex items-center justify-center"
+              title="Undo last stroke"
+            >
+              <Undo className="w-5 h-5" />
+            </button>
+            <button onClick={handleClearClick} disabled={isUploading} className="px-4 sm:px-8 py-2 sm:py-3 font-semibold transition-colors border rounded-lg bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600 disabled:opacity-50">Clear</button>
+          </div>
+          <button onClick={handleDoneClick} disabled={isUploading} className="px-4 sm:px-8 py-2 sm:py-3 font-bold text-neutral-900 transition-colors bg-white rounded-lg hover:bg-neutral-200 disabled:opacity-50 w-full">
             {isUploading ? 'Processing...' : 'Recognize'}
           </button>
         </div>
