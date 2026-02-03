@@ -42,4 +42,10 @@ public class MessageController {
                 .status(HttpStatus.CREATED)
                 .body("Message received");
     }
+
+    @GetMapping("/getAll")
+    public ResponseEntity<?> getAllMessage() {
+        Message[] messages = messageRepository.findAll().toArray(new Message[0]);
+        return ResponseEntity.ok(messages);
+    }
 }
